@@ -3,13 +3,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import permissions
 from django.contrib.auth.models import User
+from django.contrib import auth
 from user_profiles.models import UserProfile
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt, get_token,requires_csrf_token
 from django.utils.decorators import method_decorator
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django.http import HttpResponse
+
 
 # Create your views here.
+
+class CheckAuthenticatedView(APIView):
+    @method_decorator(requires_csrf_token)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get(self,request, format = None):
+        isAutheticated = User.is_authenticated
+
+        if isAutheticated:
+            return Response({'isAuthenticated': 'success'})
+        else:
+            return Response({'isAuthenticated:''error'})
 
 class SignUpView(APIView):
     permission_classes = (permissions.AllowAny, )
@@ -33,17 +46,51 @@ class SignUpView(APIView):
                     return Response({'error': 'La contraseña debe tener más de 6 caracteres'})
                 else:
                     user = User.objects.create_user(username=username, password=password)
-                   
+                    user_id = User.objects.get(id=user.id)
 
-                    user_profile = UserProfile(user.id,nombre='', apellido= '', celular=0)
+                    user_profile = UserProfile(user_id,nombre='', apellido= '', celular=0)
                     
 
                     return Response({'success': 'Usuario creado'})
         else:
                 return Response({'error': 'Las contraseñas no son iguales'})
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-# @ensure_csrf_cookie
+class LogInView(APIView):
+    permission_classes =(permissions.AllowAny, )
+    @method_decorator(requires_csrf_token)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self, request, format=None):
+        data = self.request.data
+
+        username = data['username']
+        password = data['password']
+
+        user = auth.authenticate(username=username, password=password)
+
+        if user is not None:
+            auth.login(request, user)
+            csrf_token = get_token(request)
+            return Response({'success': 'Usuario autenticado', 'username': username, 'csrf_token': csrf_token})
+        else:
+            return Response({'error': 'Error en la autenticación'})
+        
+
+class LogOutView(APIView):
+    @method_decorator(requires_csrf_token)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self,request,format=None):
+
+        try:
+            auth.logout(request)
+            return Response({'success': 'Log Out'})
+        except: 
+            Response({'error': 'Error en el log out'})
+
+
 class GetCSRFToken(APIView): #Traigo el token almacenado en una cookie
     permission_classes =(permissions.AllowAny, )
 
@@ -53,7 +100,7 @@ class GetCSRFToken(APIView): #Traigo el token almacenado en una cookie
 
 
     def get(self, request, format= None):
-        
-        return Response({'success': 'CSRF cookie set'})
+        csrf_token = get_token(request)
+        return Response({'success': csrf_token})
         
         
