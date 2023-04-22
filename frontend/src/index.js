@@ -1,22 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter, Route, Switch } from 'react-router-dom'
+import {BrowserRouter,Routes, Route } from 'react-router-dom'
 
 import reportWebVitals from './reportWebVitals';
 //Components:
 import Navbar from './components/Navbar/Navbar';
 import ActivityList from './components/Activity/ActivityList';
+import ActivityForm from './components/Activity/ActivityForm';
+
+
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css';
 
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 ReactDOM.render(
-  <div>
+  <BrowserRouter>
     <Navbar />
     <div className="container my-4">
-      <ActivityList />
+      <Routes>
+        <Route exact path="/" Component={ActivityList}/>
+        <Route path="/activityForm" Component={ActivityForm}/>        
+ 
+      </Routes>
     </div>
-  </div>,
+  </BrowserRouter>,
   document.getElementById("root")
 );
 

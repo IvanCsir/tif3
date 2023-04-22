@@ -3,3 +3,25 @@ const API_URL = "http://127.0.0.1:8000/activities/activity"
 export const listActivities = async()=> {
     return await fetch(API_URL); //Para hacer la solicitud http
 };
+
+export const registerActivity= async(newActivity)=> {
+    return await fetch(API_URL, {
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({        //para poder convertir un objeto a json
+            "name":String(newActivity.name).trim(),
+            "description":String(newActivity.description).trim(),
+
+        })    
+            
+    })
+};
+
+export const deleteActivity= async(activityId)=> {
+    return await fetch(`${API_URL}${activityId}`, {
+        method:'DELETE',   
+            
+    })
+};

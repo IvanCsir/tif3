@@ -21,6 +21,8 @@ class ActivityView(View):
             actividades= list(Activity.objects.filter(id=id).values())
             if len(actividades)>0:
                 actividad = actividades[0]
+                print(actividad)
+
                 datos = {'message':"success", "actividad": actividad}
             else:
                 datos = {'message':"Activity not found"}

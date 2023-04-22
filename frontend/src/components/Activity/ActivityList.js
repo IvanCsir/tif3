@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as activityserver from './ActivityServer'
  //Componentes:
- import ActivityItem from "./ActivityItem";
+import ActivityItem from "./ActivityItem";
 
 
 const ActivityList = () => {
