@@ -4,6 +4,13 @@ export const listActivities = async()=> {
     return await fetch(API_URL); //Para hacer la solicitud http
 };
 
+export const getActivity = async(activityId)=> {
+    return await fetch(`${API_URL}${"/"}${activityId}`); 
+};  
+
+
+
+
 export const registerActivity= async(newActivity)=> {
     return await fetch(API_URL, {
         method:'POST',
@@ -19,9 +26,25 @@ export const registerActivity= async(newActivity)=> {
     })
 };
 
+export const updateActivity= async(activityId, updatedActivity)=> {
+    return await fetch(`${API_URL}${"/"}${activityId}`, {
+        method:'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify({        //para poder convertir un objeto a json
+            "name":String(updatedActivity.name).trim(),
+            "description":String(updatedActivity.description).trim(),
+
+        })    
+            
+    })
+};
+
+
 export const deleteActivity= async(activityId)=> {
-    return await fetch(`${API_URL}${activityId}`, {
-        method:'DELETE',   
+    return await fetch(`${API_URL}${"/"}${activityId}`, {
+        method:'DELETE'   
             
     })
 };

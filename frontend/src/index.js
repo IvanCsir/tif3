@@ -19,7 +19,9 @@ ReactDOM.render(
     <div className="container my-4">
       <Routes>
         <Route exact path="/" Component={ActivityList}/>
-        <Route path="/activityForm" Component={ActivityForm}/>        
+        <Route path="/activityForm" Component={ActivityForm}/>
+        <Route path="/updateActivity/:id" Component={ActivityForm}/>        
+
  
       </Routes>
     </div>

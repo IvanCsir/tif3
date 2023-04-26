@@ -26,7 +26,7 @@ const ActivityList = () => {
     return (
       <div className="row">
         {activities.map((activity) => (
-          <ActivityItem key={activity.id} activity={activity} />
+          <ActivityItem key={activity.id} activity={activity} listactivities={listactivities} />
         ))}
       </div>
     );
