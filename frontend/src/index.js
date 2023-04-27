@@ -8,6 +8,8 @@ import Navbar from './components/Navbar/Navbar';
 import ActivityList from './components/Activity/ActivityList';
 import ActivityForm from './components/Activity/ActivityForm';
 
+import SignUp from './components/Users/SignUp';
+
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css';
@@ -18,7 +20,9 @@ ReactDOM.render(
     <Navbar />
     <div className="container my-4">
       <Routes>
-        <Route exact path="/" Component={ActivityList}/>
+        <Route exact path="/" Component={SignUp} />
+
+        <Route path="/actividades" Component={ActivityList}/>
         <Route path="/activityForm" Component={ActivityForm}/>
         <Route path="/updateActivity/:id" Component={ActivityForm}/>        
 
