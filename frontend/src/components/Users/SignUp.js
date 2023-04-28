@@ -32,7 +32,7 @@ function SignUp() {
           setUsername("");
           setPassword("");
           setRePassword("");
-          navigate("/actividades")
+          navigate("/login")
         }
       });
       
@@ -40,6 +40,7 @@ function SignUp() {
 
 
   return (
+    
     <div className="col-md-3 mx-auto">
         <h2 className="mb-3 text-center">Registro</h2>
         <form onSubmit={handleSignUp}>
@@ -87,12 +88,11 @@ function SignUp() {
           />
         </div>
         <div className="d-grid gap-2">
-            <button className="btn btn-block btn-secondary" type="submit">Sign Up</button>
+            <button className="btn btn-block btn-success" type="submit">Sign Up</button>
         </div>
         </form>
 
     </div>
   );
 }
-
 export default SignUp;

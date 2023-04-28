@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import * as ActivityServer from "./ActivityServer";
 import { useNavigate, useParams } from "react-router-dom";
+import Navbar from "../Navbar/Navbar";
+import { Container } from "@mui/material";
 
 const ActivityForm = () => {
   const navigate = useNavigate(); //esto es para redireccionar a otra ruta
@@ -61,51 +63,51 @@ const ActivityForm = () => {
 
   return (
     <div className="col-md-3 mx-auto">
-      <h2 className="mb-3 text-center">Actividad</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Nombre</label>
-          {/* El onChange se pone para manejar el cambio del input */}
-          <input
-            type="text"
-            name="name"
-            value={activity.name}
-            onChange={handleInputChange}
-            maxLength="50"
-            className="form-control"
-            minLength="2"
-            autoFocus
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Descripcion</label>
-          <input
-            type="text"
-            name="description"
-            value={activity.description}
-            onChange={handleInputChange}
-            maxLength="255"
-            className="form-control"
-            min="1900"
-            max="2020"
-            required
-          />
-        </div>
-        <div className="d-grid gap-2">
-          {params.id ? (
-            <button type="submit" className="btn btn-block btn-primary">
-              Actualizar
-            </button>
-          ) : (
-            <button type="submit" className="btn btn-block btn-success">
-              Registrar
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
+    <h2 className="mb-3 text-center">Actividad</h2>
+    <form onSubmit={handleSubmit}>
+      <div className="mb-3">
+        <label className="form-label">Nombre</label>
+        {/* El onChange se pone para manejar el cambio del input */}
+        <input
+          type="text"
+          name="name"
+          value={activity.name}
+          onChange={handleInputChange}
+          maxLength="50"
+          className="form-control"
+          minLength="2"
+          autoFocus
+          required
+        />
+      </div>
+      <div className="mb-3">
+        <label className="form-label">Descripcion</label>
+        <input
+          type="text"
+          name="description"
+          value={activity.description}
+          onChange={handleInputChange}
+          maxLength="255"
+          className="form-control"
+          min="1900"
+          max="2020"
+          required
+        />
+      </div>
+      <div className="d-grid gap-2">
+        {params.id ? (
+          <button type="submit" className="btn btn-block btn-primary">
+            Actualizar
+          </button>
+        ) : (
+          <button type="submit" className="btn btn-block btn-success">
+            Registrar
+          </button>
+        )}
+      </div>
+    </form>
+  </div>
+);
 };
 
 export default ActivityForm;

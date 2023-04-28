@@ -9,6 +9,7 @@ import ActivityList from './components/Activity/ActivityList';
 import ActivityForm from './components/Activity/ActivityForm';
 
 import SignUp from './components/Users/SignUp';
+import Login from './components/Users/Login';
 
 
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -17,16 +18,15 @@ import './index.css';
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 ReactDOM.render(
   <BrowserRouter>
-    <Navbar />
+  <Navbar></Navbar>
     <div className="container my-4">
       <Routes>
         <Route exact path="/" Component={SignUp} />
-
+        <Route path="/login" Component={Login}/>
         <Route path="/actividades" Component={ActivityList}/>
         <Route path="/activityForm" Component={ActivityForm}/>
         <Route path="/updateActivity/:id" Component={ActivityForm}/>        
 
- 
       </Routes>
     </div>
   </BrowserRouter>,
