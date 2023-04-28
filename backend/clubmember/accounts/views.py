@@ -11,25 +11,12 @@ from django.utils.decorators import method_decorator
 
 # Create your views here.
 
-class CheckAuthenticatedView(APIView):
-    @method_decorator(requires_csrf_token)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-    
-    def get(self,request, format = None):
-        isAutheticated = User.is_authenticated
-
-        if isAutheticated:
-            return Response({'isAuthenticated': 'success'})
-        else:
-            return Response({'isAuthenticated:''error'})
-
 class SignUpView(APIView):
     permission_classes = (permissions.AllowAny, )
-    @method_decorator(requires_csrf_token)
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
+   
     def post(self, request, format=None):
     
         data = self.request.data
@@ -57,7 +44,7 @@ class SignUpView(APIView):
 
 class LogInView(APIView):
     permission_classes =(permissions.AllowAny, )
-    @method_decorator(requires_csrf_token)
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
     
@@ -71,14 +58,13 @@ class LogInView(APIView):
 
         if user is not None:
             auth.login(request, user)
-            csrf_token = get_token(request)
-            return Response({'success': 'Usuario autenticado', 'username': username, 'csrf_token': csrf_token})
+            return Response({'success': 'Usuario autenticado'})
         else:
             return Response({'error': 'Error en la autenticación'})
         
 
 class LogOutView(APIView):
-    @method_decorator(requires_csrf_token)
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
     
@@ -91,16 +77,15 @@ class LogOutView(APIView):
             Response({'error': 'Error en el log out'})
 
 
-class GetCSRFToken(APIView): #Traigo el token almacenado en una cookie
-    permission_classes =(permissions.AllowAny, )
+# class GetCSRFToken(APIView): #Traigo el token almacenado en una cookie
+#     permission_classes =(permissions.AllowAny, )
 
-    @method_decorator(ensure_csrf_cookie)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+#     @method_decorator(csrf_exempt)
+#     def dispatch(self, request, *args, **kwargs):
+#         return super().dispatch(request, *args, **kwargs)
 
-
-    def get(self, request, format= None):
-        csrf_token = get_token(request)
-        return Response({'success': csrf_token})
+#     def get(self, request, format= None):
+#         csrf_token = get_token(request)
+#         return Response({'success': csrf_token})
         
         
