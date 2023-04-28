@@ -35,7 +35,7 @@ const ActivityForm = () => {
         await ActivityServer.updateActivity(params.id, activity);
       }
       
-      navigate("/");
+      navigate("/actividades");
     } catch (error) {
       console.log(error);
     }
