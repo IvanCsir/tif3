@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'clubmember.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cm_users',
+        'NAME': 'db_tif3',
         'USER': 'postgres',
         'PASSWORD': '1234',
         'HOST': 'localhost',
