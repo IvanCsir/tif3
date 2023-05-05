@@ -1,10 +1,9 @@
 from django.urls import path
-from .views import SignUpView, LogInView, LogOutView
+from rest_framework import routers
+from .views import AuthenticationViewSet, TipoUsuariosViewSet
 
-urlpatterns = [
-    # path('authenticated', CheckAuthenticatedView.as_view()),
-    path('login', LogInView.as_view()),
-    path('logout', LogOutView.as_view()),
-    path('register',SignUpView.as_view()),
-    # path('csrf_cookie', GetCSRFToken.as_view())
-]
+router = routers.SimpleRouter()
+router.register(r'tipo-usuarios', TipoUsuariosViewSet, basename='tipo-usuarios')
+router.register(r'authentication', AuthenticationViewSet, basename='authentication')
+
+urlpatterns = router.urls

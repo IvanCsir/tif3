@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-y8r$+)7!mh08-dz2x$4#d-s8i$6dz2-7j@y4&d%x$$imic1v8f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -48,13 +48,18 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     
 ]
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    # Agrega aquí los dominios permitidos
+]
+
 
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -86,7 +91,7 @@ WSGI_APPLICATION = 'clubmember.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_tif3',
+        'NAME': 'db_prueba1',
         'USER': 'postgres',
         'PASSWORD': '1234',
         'HOST': 'localhost',
@@ -141,15 +146,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT =  os.path.join(BASE_DIR, 'static')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-    'rest_framework.authentication.SessionAuthentication'
+    # 'rest_framework.authentication.SessionAuthentication'
+    'rest_framework_simplejwt.authentication.JWTAuthentication'
+
     ]
+    
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY= True
+
+# CSRF_COOKIE_SECURE = True
+# CSRF_COOKIE_HTTPONLY= True
     

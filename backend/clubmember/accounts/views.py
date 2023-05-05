@@ -1,91 +1,55 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import permissions
+from rest_framework import viewsets, status
 from django.contrib.auth.models import User
 from django.contrib import auth
 from user_profiles.models import UserProfile
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt, get_token,requires_csrf_token
-from django.utils.decorators import method_decorator
-
+from .models import DatosUsuarios, TipoUsuarios
+from django.contrib.auth import authenticate, get_user_model
+from django.shortcuts import get_object_or_404
+from .serializers import UsuarioCreateSerializer, UsuarioSerializer, UsuarioUpdateSerializer, TipoUsuarios, TipoUsuarioCreateSerializer, TipoUsuarioSerializer
+from rest_framework.decorators import action
 
 # Create your views here.
 
-class SignUpView(APIView):
-    permission_classes = (permissions.AllowAny, )
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-   
-    def post(self, request, format=None):
+class AuthenticationViewSet(viewsets.ViewSet):
+    @action(methods=['post'], detail=False)
+    def login(self, request):
+        data = request.data
+        user = authenticate(username=data['username'], password=data['password'])
+        queryset = DatosUsuarios.objects.all()
+        usuario = get_object_or_404(queryset, usuario=user.id)
+        serializers = UsuarioSerializer(usuario)
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False)
+    def register(self, request):
+        data = request.data
+        user = User.objects.create_user(data['username'], data['email'], data['password'])
+        data['usuario'] = user.id
+        datosUsuario = UsuarioCreateSerializer(data=data)
+        if datosUsuario.is_valid():
+            datosUsuario.save()
+            return Response(datosUsuario.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     
-        data = self.request.data
-        username = data['username']
-        password = data['password']
-        re_password = data['re_password']
+class TipoUsuariosViewSet(viewsets.ViewSet):
+    def list(self, request):  # GET ALL
+        queryset = TipoUsuarios.objects.all()
+        serializer = TipoUsuarioSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-        if password == re_password:
-            if User.objects.filter(username=username).exists():
-                return Response({'error': 'el usuario ya existe'})
-            else:
-                
-                if len(password)<6:
-                    return Response({'error': 'La contraseña debe tener más de 6 caracteres'})
-                else:
-                    user = User.objects.create_user(username=username, password=password)
-                    user_id = User.objects.get(id=user.id)
+    def retrieve(self, request, pk=None):  # GET ONE
+        queryset = TipoUsuarios.objects.all()
+        tipo_usuario = get_object_or_404(queryset, pk=pk)
+        serializer = TipoUsuarioSerializer(tipo_usuario)
+        return Response(serializer.data)
 
-                    user_profile = UserProfile(user_id,nombre='', apellido= '', celular=0)
-                    
-
-                    return Response({'success': 'Usuario creado'})
-        else:
-                return Response({'error': 'Las contraseñas no son iguales'})
-
-class LogInView(APIView):
-    permission_classes =(permissions.AllowAny, )
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-    
-    def post(self, request, format=None):
-        data = self.request.data
-
-        username = data['username']
-        password = data['password']
-
-        user = auth.authenticate(username=username, password=password)
-
-        if user is not None:
-            auth.login(request, user)
-            return Response({'success': 'Usuario autenticado'})
-        else:
-            return Response({'error': 'Error en la autenticación'})
-        
-
-class LogOutView(APIView):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-    
-    def post(self,request,format=None):
-
-        try:
-            auth.logout(request)
-            return Response({'success': 'Log Out'})
-        except: 
-            Response({'error': 'Error en el log out'})
-
-
-# class GetCSRFToken(APIView): #Traigo el token almacenado en una cookie
-#     permission_classes =(permissions.AllowAny, )
-
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
-
-#     def get(self, request, format= None):
-#         csrf_token = get_token(request)
-#         return Response({'success': csrf_token})
-        
-        
+    def create(self, request):  # POST
+        post_data = request.data
+        serializer = TipoUsuarioCreateSerializer(data=post_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
