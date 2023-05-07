@@ -7,6 +7,12 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Activity
 from rest_framework.response import Response
 import json
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from .serializers import  DatosCreateActivitySeralizer
+from datetime import date
+from django.shortcuts import get_object_or_404
+
 
 # Create your views here.
 
@@ -76,4 +82,18 @@ class ActivityView(View):
             datos = {'message':"Activity not found"}
 
         return JsonResponse(datos) 
-        
+     
+# class DatosActivityView(viewsets.ViewSet):
+
+#     @action(methods=['post'], detail=True)
+#     def crear_datos_activity(self, request, id_act=None):
+#         activity = get_object_or_404(Activity, id=id_act)
+#         data = request.data.copy()
+#         data['day'] = date.today()
+#         data['id_act'] = activity.id
+#         serializer = DatosCreateActivitySeralizer(data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

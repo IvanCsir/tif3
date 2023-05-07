@@ -13,3 +13,6 @@ class DatosUsuarios(models.Model):
     apellido = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     tipo = models.ForeignKey(TipoUsuarios, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return(self.nombre + " " + self.apellido)
