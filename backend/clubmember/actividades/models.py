@@ -1,6 +1,6 @@
 from django.db import models
 from accounts.models import DatosUsuarios
-from .choiches import horarios
+from .choices import horarios
 from datetime import date
 
 # Create your models here.

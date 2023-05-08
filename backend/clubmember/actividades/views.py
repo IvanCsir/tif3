@@ -9,7 +9,7 @@ from rest_framework.response import Response
 import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from .serializers import  DatosCreateActivitySeralizer
+from .serializers import DatosCreateActivitySeralizer
 from datetime import date
 from django.shortcuts import get_object_or_404
 
@@ -83,17 +83,30 @@ class ActivityView(View):
 
         return JsonResponse(datos) 
      
-# class DatosActivityView(viewsets.ViewSet):
+class DatosActivityView(viewsets.ViewSet):
+    @action(detail=True, methods=['post'])
+    def crear_datos_activity(self, request, id_act=None):
+        activity = get_object_or_404(Activity, id=id_act)
+        data = request.data.copy()
+        data['id_act'] = activity.id
+        serializer = DatosCreateActivitySeralizer(data=data)
+        if serializer.is_valid():
+            serializer.save(id_act=activity)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#     @action(methods=['post'], detail=True)
-#     def crear_datos_activity(self, request, id_act=None):
-#         activity = get_object_or_404(Activity, id=id_act)
-#         data = request.data.copy()
-#         data['day'] = date.today()
-#         data['id_act'] = activity.id
-#         serializer = DatosCreateActivitySeralizer(data=data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self,request, id):
+    #     mensaje = {"message": "datos creados"}
+    #     data = json.loads(request.body)
+    #     id_actividad = Activity.objects.filter(id=id)
+
+    #     id_act = data[id_actividad]
+    #     day = date.today()
+    #     time = data["time"]
+    #     capacity = data["Capacity"]
+    #     DatosActivityView.objects.create(id_act= id_act, day = day, time=time, capacity = capacity)
+
+    #     return JsonResponse(mensaje)
+
+ 
 
