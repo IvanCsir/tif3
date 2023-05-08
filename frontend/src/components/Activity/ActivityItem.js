@@ -7,6 +7,7 @@ import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Grid} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 const ActivityItem = ({ activity, listactivities}) => {
   // console.log(props.activity);
@@ -39,6 +40,14 @@ const ActivityItem = ({ activity, listactivities}) => {
             >
               <EditIcon />
             </IconButton>
+          </Grid>
+          <Grid item xs={1}>
+            <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
+
+              <HourglassEmptyIcon></HourglassEmptyIcon>
+
+            </IconButton>
+
           </Grid>
         </Grid>
 

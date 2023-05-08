@@ -8,9 +8,10 @@ import Navbar from './components/Navbar/Navbar';
 import ActivityList from './components/Activity/ActivityList';
 import ActivityForm from './components/Activity/ActivityForm';
 
-import SignUp from './components/Users/SignUp';
+// import SignUp from './components/Users/Register';
 import Login from './components/Users/Login';
-
+import Register from './components/Users/Register';
+import DatosActivityForm from './components/Activity/DatosActivityForm';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css';
@@ -21,8 +22,10 @@ ReactDOM.render(
   <Navbar></Navbar>
     <div className="container my-4">
       <Routes>
-        <Route exact path="/" Component={SignUp} />
+        <Route exact path="/" element={<Register />}/>
         <Route path="/login" Component={Login}/>
+        <Route path="/register" element={<Register />} />
+        <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
         <Route path="/actividades" Component={ActivityList}/>
         <Route path="/activityForm" Component={ActivityForm}/>
         <Route path="/updateActivity/:id" Component={ActivityForm}/>        
