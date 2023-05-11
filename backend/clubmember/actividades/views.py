@@ -4,12 +4,12 @@ from django.http.response import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from .models import Activity
+from .models import Activity, DatosActivity
 from rest_framework.response import Response
 import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from .serializers import DatosCreateActivitySeralizer
+from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer
 from datetime import date
 from django.shortcuts import get_object_or_404
 
@@ -94,19 +94,13 @@ class DatosActivityView(viewsets.ViewSet):
             serializer.save(id_act=activity)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['get'])
+    def lugares_disponibles(self, request, id_act=None):
+        queryset = DatosActivity.objects.filter(id_act=id_act)
+        serializer = DatosActivitySerializer(queryset, many=True)
+        return Response(serializer.data)
 
-    # def post(self,request, id):
-    #     mensaje = {"message": "datos creados"}
-    #     data = json.loads(request.body)
-    #     id_actividad = Activity.objects.filter(id=id)
-
-    #     id_act = data[id_actividad]
-    #     day = date.today()
-    #     time = data["time"]
-    #     capacity = data["Capacity"]
-    #     DatosActivityView.objects.create(id_act= id_act, day = day, time=time, capacity = capacity)
-
-    #     return JsonResponse(mensaje)
-
- 
-
+class Reservation(viewsets.ViewSet):
+    
+    pass

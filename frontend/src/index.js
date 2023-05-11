@@ -15,6 +15,7 @@ import DatosActivityForm from './components/Activity/DatosActivityForm';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css';
+import DatosActivityList from './components/Activity/DatosActivityList';
 
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 ReactDOM.render(
@@ -28,7 +29,9 @@ ReactDOM.render(
         <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
         <Route path="/actividades" Component={ActivityList}/>
         <Route path="/activityForm" Component={ActivityForm}/>
-        <Route path="/updateActivity/:id" Component={ActivityForm}/>        
+        <Route path="/updateActivity/:id" Component={ActivityForm}/>
+        <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>      
+
 
       </Routes>
     </div>
