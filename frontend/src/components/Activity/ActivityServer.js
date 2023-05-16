@@ -18,8 +18,9 @@ export const registerActivity= async(newActivity)=> {
             'Content-Type': 'application/json'
         },
         body:JSON.stringify({        //para poder convertir un objeto a json
-            "name":String(newActivity.name).trim(),
+            "name":String(newActivity.name).trim(), //Elimino los espacios en blanco
             "description":String(newActivity.description).trim(),
+            "aire_libre": newActivity.aire_libre,
 
         })    
             
@@ -35,7 +36,7 @@ export const updateActivity= async(activityId, updatedActivity)=> {
         body:JSON.stringify({        //para poder convertir un objeto a json
             "name":String(updatedActivity.name).trim(),
             "description":String(updatedActivity.description).trim(),
-
+            "aire_libre": updatedActivity.aire_libre,
         })    
             
     })

@@ -52,8 +52,9 @@ class ActivityView(View):
 
         name = data['name']
         description = data['description']
+        aire_libre = data['aire_libre']  # Nuevo campo para indicar si es al aire libre
 
-        Activity.objects.create(name=name,description = description)
+        Activity.objects.create(name=name,description = description, aire_libre = aire_libre)
         return JsonResponse(datos)
 
     def put(self, request, id):
@@ -64,6 +65,8 @@ class ActivityView(View):
                 activity= Activity.objects.get(id=id)
                 activity.name = data['name']
                 activity.description = data['description']
+                # activity.aire_libre = data['aire_libre']
+                activity.aire_libre = data.get('aire_libre', False)
                 activity.save()
                 datos = {'message': 'success'} 
         else:
@@ -100,6 +103,8 @@ class DatosActivityView(viewsets.ViewSet):
         queryset = DatosActivity.objects.filter(id_act=id_act)
         serializer = DatosActivitySerializer(queryset, many=True)
         return Response(serializer.data)
+    
+    
 
 class Reservation(viewsets.ViewSet):
     

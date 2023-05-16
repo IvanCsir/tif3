@@ -23,8 +23,8 @@ ReactDOM.render(
   <Navbar></Navbar>
     <div className="container my-4">
       <Routes>
-        <Route exact path="/" element={<Register />}/>
-        <Route path="/login" Component={Login}/>
+        <Route exact path="/" element={<Login />}/>
+        {/* <Route path="/login" Component={Login}/> */}
         <Route path="/register" element={<Register />} />
         <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
         <Route path="/actividades" Component={ActivityList}/>

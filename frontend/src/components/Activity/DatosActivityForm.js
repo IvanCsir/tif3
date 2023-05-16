@@ -11,6 +11,7 @@ function DatosActivityForm(props) {
   const [day, setDay] = useState('');
   const [time, setTime] = useState('');
   const [capacity, setCapacity] = useState('');
+
   const navigate = useNavigate()
   // opciones del desplegable
   const times = [
@@ -36,6 +37,7 @@ function DatosActivityForm(props) {
       day: day,
       time: time,
       capacity: capacity,
+
     };
     axios
       .post(`http://127.0.0.1:8000/api/activities/activity/${id}/datos/`, data, {

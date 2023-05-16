@@ -1,7 +1,7 @@
 import React from "react";
 import * as ActivityServer from './ActivityServer';
 import {useNavigate} from 'react-router-dom';
-import { IconButton } from '@mui/material';
+import { IconButton} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Grid} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,46 +18,57 @@ const ActivityItem = ({ activity, listactivities}) => {
     };
 
   return (
-    <div className="col-md-4 mb-4">
-      <div className="card card-body">
-        <Grid container alignItems="right">
-          <Grid item xs={9}>
-            <h3 className="card-title">{activity.name}</h3>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton
-              sx={{ "&:hover": { color: "red" } }}
-              onClick={() => activity.id && handleDelete(activity.id)}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton
-              sx={{ "&:hover": { color: "green" } }}
-              onClick={() => navigate(`/updateActivity/${activity.id}`)}
-            >
-              <EditIcon />
-            </IconButton>
-          </Grid>
-          <Grid item xs={1}>
-            <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
+      <div className="col-md-4 mb-4">
+        <div className="card card-body">
+          <Grid container alignItems="right">
+            <Grid item xs={9}>
+              <h3 className="card-title">{activity.name}</h3>
+              <h2> {activity.aire_libre}</h2>
+            </Grid>
+            <Grid item xs={1}>
+              <IconButton
+                sx={{ "&:hover": { color: "red" } }}
+                onClick={() => activity.id && handleDelete(activity.id)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Grid>
+            <Grid item xs={1}>
+              <IconButton
+                sx={{ "&:hover": { color: "green" } }}
+                onClick={() => navigate(`/updateActivity/${activity.id}`)}
+              >
+                <EditIcon />
+              </IconButton>
+            </Grid>
+            <Grid item xs={1}>
+              <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
 
-              <HourglassEmptyIcon></HourglassEmptyIcon>
+                <HourglassEmptyIcon></HourglassEmptyIcon>
 
-            </IconButton>
+              </IconButton>
 
+            </Grid>
+            <Grid item>
+          {activity.aire_libre ? (
+            // Se muestra si activity.aire_libre es true
+            <p><strong>Lugar:</strong> Aire libre</p>
+          ) : (
+            // Se muestra si activity.aire_libre es false
+            <p> <strong>Lugar:</strong> Techado </p>
+          )}
+            </Grid>
           </Grid>
-        </Grid>
-
-        <p className="card-text">
-          Descripcion: <strong> {activity.description}</strong>{" "}
-        </p>
-        <h2 className="btn btn-primary" onClick={()=> navigate(`/activity/lugares_disponibles/${activity.id}/`)}>Ver horarios </h2>
+          <h1>{activity.aire_libre}</h1>
+          <p className="card-text">
+            <strong> Descripcion: </strong>  {activity.description}
+          </p>
+          <h2 className="btn btn-primary" onClick={()=> navigate(`/activity/lugares_disponibles/${activity.id}/`)}>Ver horarios </h2>
+        </div>
       </div>
-    </div>
   );
 };
+
 
 // return (
 //   <Card sx={{ minWidth: 275, marginBottom: 4 }} alignItems="right">

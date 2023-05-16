@@ -5,7 +5,7 @@ from .choices import horarios
 class DatosCreateActivitySeralizer(serializers.ModelSerializer):
     class Meta:
         model = DatosActivity
-        fields = ('day', 'time', 'capacity')
+        fields = ('day', 'time','capacity')
 
 class DatosActivitySerializer(serializers.ModelSerializer):
     #Creo un nuevo campo en el serializer
