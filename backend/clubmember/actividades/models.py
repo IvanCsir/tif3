@@ -20,6 +20,9 @@ class DatosActivity(models.Model):
     day = models.DateField(default=date.today, null=True, blank=True)
     time = models.CharField(max_length=10, choices=horarios, default="1")
     capacity = models.IntegerField(default=0)
+    temperatura_max = models.CharField(max_length=50, null=True, blank=True)
+    temperatura_min = models.CharField(max_length=50, null = True, blank=True)
+    condiciones = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         unique_together = ('id_act', 'time', 'day')

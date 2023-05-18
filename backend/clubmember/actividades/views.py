@@ -1,3 +1,4 @@
+import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.http.response import JsonResponse
@@ -10,8 +11,9 @@ import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer
-from datetime import date
+from datetime import date, datetime
 from django.shortcuts import get_object_or_404
+import requests
 
 
 # Create your views here.
@@ -49,7 +51,6 @@ class ActivityView(View):
     def post(self, request):
         datos = {'message': 'success'} 
         data = json.loads(request.body) #cargo el cuerpo de la solicitud
-
         name = data['name']
         description = data['description']
         aire_libre = data['aire_libre']  # Nuevo campo para indicar si es al aire libre
@@ -87,6 +88,24 @@ class ActivityView(View):
         return JsonResponse(datos) 
      
 class DatosActivityView(viewsets.ViewSet):
+
+    def obtener_pronostico(self,day, city, country):
+        url = "https://api.weatherbit.io/v2.0/forecast/daily"
+        params = {
+        "city": city,
+        "country": country,
+        "key": "3ad769e4b44845d499ba94cc7d0eaf87",
+        "lang": "es",
+    }
+
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            datos_clima = response.json()
+            return datos_clima
+        else:
+            msg = {'error': 'no se pudo obtener el clima'}
+            return msg
+
     @action(detail=True, methods=['post'])
     def crear_datos_activity(self, request, id_act=None):
         activity = get_object_or_404(Activity, id=id_act)
@@ -95,15 +114,48 @@ class DatosActivityView(viewsets.ViewSet):
         serializer = DatosCreateActivitySeralizer(data=data)
         if serializer.is_valid():
             serializer.save(id_act=activity)
+            
+            # Llamada a la función para obtener los datos de clima
+            day = serializer.validated_data['day']
+            city = "Mendoza"  # Reemplaza con el nombre de la ciudad
+            country = "Argentina"
+            datos_clima = self.obtener_pronostico(day, city, country)
+            
+            if datos_clima:
+                activity = serializer.instance.id_act
+                if activity.aire_libre:
+             # Buscar el pronóstico correspondiente al día específico
+                    for pronostico_dia in datos_clima['data']:
+                        fecha_pronostico = datetime.strptime(pronostico_dia['datetime'], '%Y-%m-%d').date()
+                        if fecha_pronostico == day:
+                            # Asignar los valores relevantes del pronóstico del clima a los campos correspondientes de la instancia de DatosActivity
+                            serializer.instance.temperatura_max = round(pronostico_dia['app_max_temp'])
+                            serializer.instance.temperatura_min = round(pronostico_dia['app_min_temp'])
+                            serializer.instance.condiciones = pronostico_dia['weather']['description']
+                            # Guardar los cambios en la instancia de DatosActivity
+                            serializer.instance.save()
+                            break
+            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # @action(detail=True, methods=['post'])
+    # def crear_datos_activity(self, request, id_act=None):
+    #     activity = get_object_or_404(Activity, id=id_act)
+    #     data = request.data.copy()
+    #     data['id_act'] = activity.id
+    #     serializer = DatosCreateActivitySeralizer(data=data)
+    #     if serializer.is_valid():
+    #         serializer.save(id_act=activity)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
     @action(detail=True, methods=['get'])
     def lugares_disponibles(self, request, id_act=None):
         queryset = DatosActivity.objects.filter(id_act=id_act)
         serializer = DatosActivitySerializer(queryset, many=True)
         return Response(serializer.data)
-    
     
 
 class Reservation(viewsets.ViewSet):

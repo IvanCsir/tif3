@@ -6,6 +6,7 @@ function DatosActivityList() {
   const { id } = useParams();
   const [datos, setDatos] = useState([]);
   const [nombreActividad, setNombreActividad] = useState('');
+  const [lugar, setLugar] = useState('')
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}/datos_activity/`)
@@ -34,18 +35,48 @@ function DatosActivityList() {
       });
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}`)
     .then((response) => response.json())
-    .then((data) => {setNombreActividad(data.actividad.name)});
+    .then((data) => {setNombreActividad(data.actividad.name);
+      setLugar(data.actividad.aire_libre)
+    });
   }, [id]);  
 
+// return (
+//   <div>
+//     <Box sx={{ my: 2 }}>
+//       <Typography
+//         variant="h4"
+//         sx={{ textTransform: "uppercase", fontWeight: "bold" }}
+//         align="center"
+//       >
+//         {nombreActividad}
+//       </Typography>
+//     </Box>
+//     <Grid container justifyContent="center" alignItems="center" spacing={2}>
+//       {datos.map((dato) => (
+//         <Grid item xs={12} md={6} lg={4} key={dato.id}>
+//           <Paper elevation={3} sx={{ p: 2, margin: "10px" }}>
+//             <Typography variant="h5" gutterBottom>
+//               {dato.day}
+//             </Typography>
+//             <Typography variant="body1" gutterBottom>
+//               Horario: {dato.time_display}
+//             </Typography>
+//             <Typography variant="body1" gutterBottom>
+//               Capacidad: {dato.capacity}
+//             </Typography>
+//           </Paper>
+          
+//         </Grid>
+//       ))}
+//     </Grid>
+//   </div>
+// );
+// }
 return (
   <div>
     <Box sx={{ my: 2 }}>
-      <Typography
-        variant="h4"
-        sx={{ textTransform: "uppercase", fontWeight: "bold" }}
-        align="center"
-      >
-        {nombreActividad}
+      <Typography variant="h4" sx={{ textTransform: "uppercase", fontWeight: "bold" }} align="center">
+        {nombreActividad} - {lugar ? 'aire libre' : 'techado'}
       </Typography>
     </Box>
     <Grid container justifyContent="center" alignItems="center" spacing={2}>
@@ -59,14 +90,28 @@ return (
               Horario: {dato.time_display}
             </Typography>
             <Typography variant="body1" gutterBottom>
-              Capacidad: {dato.capacity}
+              Lugares disponibles: {dato.capacity}
             </Typography>
+            {dato.temperatura_max && dato.temperatura_min && dato.condiciones && (
+              <>
+                <Typography variant="body1" gutterBottom>
+                  Temperatura máxima: {dato.temperatura_max} °C
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                  Temperatura mínima: {dato.temperatura_min} °C
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                  Condiciones: {dato.condiciones}
+                </Typography>
+              </>
+            )}
           </Paper>
         </Grid>
       ))}
     </Grid>
   </div>
 );
-  
 }
+
 export default DatosActivityList;
+
