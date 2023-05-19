@@ -1,4 +1,6 @@
 import {Link} from 'react-router-dom'
+import {React} from 'react'
+
 
 const Navbar = ()=>{
   
@@ -40,6 +42,7 @@ const Navbar = ()=>{
               <li className="nav-item">
                 <Link className="nav-link" to="/activityform">Agregar Actividad</Link>
               </li>
+              
             </ul>
           </div>
         </div>

@@ -36,7 +36,7 @@ function DatosActivityList() {
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}`)
     .then((response) => response.json())
     .then((data) => {setNombreActividad(data.actividad.name);
-      setLugar(data.actividad.aire_libre)
+      setLugar(data.actividad.aire_libre);
     });
   }, [id]);  
 

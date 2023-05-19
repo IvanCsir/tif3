@@ -119,7 +119,14 @@ export default function Login() {
         if (response.status === 200) {
           localStorage.setItem('usuario_nombre', response.data.usuario)
           localStorage.setItem('usuario_id', response.data.id)
-          navigate('/activityForm');
+          localStorage.setItem('tipo_usuario', response.data.tipo)
+          const tipoUsuario = localStorage.getItem('tipo_usuario');
+
+          if (tipoUsuario === "1") {
+            navigate('/activityForm');
+          } else {
+            navigate('actividades')
+          }
         }
       })
       .catch(function (error) {

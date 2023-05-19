@@ -129,7 +129,7 @@ const Register = () => {
         })
         .then((response) => {
           alert("Usuario creado con exito");
-          navigate("/login");
+          navigate("/");
         })
         .catch((error) => {
           alert("Ocurrio un error al crear el usuario");
