@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as ActivityServer from "./ActivityServer";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Grid, TextField, Checkbox, FormControlLabel } from "@mui/material";
+import { Button, Grid, TextField, Checkbox, FormControlLabel, Box, Typography} from "@mui/material";
 
 
 const ActivityForm = () => {
@@ -80,6 +80,15 @@ const ActivityForm = () => {
       spacing={2}
       mt={3}
     >
+      <Box sx={{ my: 2 }}>
+        <Typography
+          variant="h4"
+          sx={{ textTransform: "uppercase", fontWeight: "bold" }}
+          align="center"
+        >
+          Agregar actividad
+        </Typography>
+      </Box>
       <Grid item>
         <TextField
           value={activity.name}

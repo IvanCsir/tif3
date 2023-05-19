@@ -55,30 +55,6 @@ const ActivityItem = ({ activity, listactivities}) => {
           <Grid item xs={4}>
             {renderIcons()}
           </Grid>
-          {/* <Grid item xs={1}>
-              <IconButton
-                sx={{ "&:hover": { color: "red" } }}
-                onClick={() => activity.id && handleDelete(activity.id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-            <Grid item xs={1}>
-              <IconButton
-                sx={{ "&:hover": { color: "green" } }}
-                onClick={() => navigate(`/updateActivity/${activity.id}`)}
-              >
-                <EditIcon />
-              </IconButton>
-            </Grid>
-            <Grid item xs={1}>
-              <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
-
-                <HourglassEmptyIcon></HourglassEmptyIcon>
-
-              </IconButton>
-
-            </Grid> */}
           <Grid item>
             {activity.aire_libre ? (
               // Se muestra si activity.aire_libre es true
@@ -110,55 +86,5 @@ const ActivityItem = ({ activity, listactivities}) => {
     </div>
   );
 };
-
-
-// return (
-//   <Card sx={{ minWidth: 275, marginBottom: 4 }} alignItems="right">
-//     <CardHeader
-//       title={
-//         <Grid container justifyContent="space-between" alignItems="center">
-//           <Typography variant="h6" component="div">
-//             {activity.name}
-//           </Typography>
-//           <div>
-//             <IconButton
-//               sx={{ "&:hover": { color: "red" } }}
-//               onClick={() => activity.id && handleDelete(activity.id)}
-//             >
-//               <DeleteIcon />
-//             </IconButton>
-//             <IconButton
-//               sx={{ "&:hover": { color: "green" } }}
-//               onClick={() => navigate(`/updateActivity/${activity.id}`)}
-//             >
-//               <EditIcon />
-//             </IconButton>
-//             <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
-//               <HourglassEmptyIcon />
-//             </IconButton>
-//           </div>
-//         </Grid>
-//       }
-//     />
-//     <CardContent>
-//       <Typography variant="body2" color="text.secondary">
-//         Descripcion: <strong> {activity.description}</strong>
-//       </Typography>
-//     </CardContent>
-//     <CardActions>
-//       <Grid container justifyContent="center" alignItems="center">
-//         <IconButton onClick={()=> navigate(`/activity/lugares_disponibles/${activity.id}/`)}>
-//           <HourglassEmptyIcon />
-//         </IconButton>
-//         <Typography variant="body2" component="div" sx={{ marginLeft: '5px' }}>
-//           Ver horarios
-//         </Typography>
-//       </Grid>
-//     </CardActions>
-//   </Card>
-// );
-// };
-
-
 
 export default ActivityItem;

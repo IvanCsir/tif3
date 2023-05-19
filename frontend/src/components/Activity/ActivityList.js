@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
+import { Typography, Box} from "@mui/material";
+
 import * as activityserver from './ActivityServer'
  //Componentes:
 import ActivityItem from "./ActivityItem";
@@ -25,11 +27,25 @@ const ActivityList = () => {
 
     return (
       <div className="row">
+        <Box sx={{ my: 2 }}>
+          <Typography
+            variant="h4"
+            sx={{ textTransform: "uppercase", fontWeight: "bold" }}
+            align="center"
+          >
+            actividades
+          </Typography>
+        </Box>
         {activities.map((activity) => (
-          <ActivityItem key={activity.id} activity={activity} listactivities={listactivities} />
+          <ActivityItem
+            key={activity.id}
+            activity={activity}
+            listactivities={listactivities}
+          />
         ))}
       </div>
     );
 };
 
 export default ActivityList;
+

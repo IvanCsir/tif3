@@ -26,7 +26,7 @@ const Navbar = ()=>{
             <ul className="navbar-nav">
               <li className="nav-item">
                 <Link className="nav-link active" aria-current="page" to="/actividades">
-                  Home
+                  Actividades
                 </Link>
               </li>
               {/* <li className="nav-item">
