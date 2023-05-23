@@ -33,6 +33,13 @@ function DatosActivityForm(props) {
 
   const handleSubmit = (e) => {
     // e.preventDefault();
+
+    const today = new Date().toISOString().split("T")[0]; // Obtener la fecha actual en formato YYYY-MM-DD
+      if (day < today) {
+        alert("No se pueden seleccionar fechas pasadas.");
+      return;
+    }
+
     const data = {
       day: day,
       time: time,

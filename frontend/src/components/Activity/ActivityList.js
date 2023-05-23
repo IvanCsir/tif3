@@ -1,5 +1,5 @@
 import React, { useEffect, useState} from "react";
-import { Typography, Box} from "@mui/material";
+import { Typography, Box } from "@mui/material";
 
 import * as activityserver from './ActivityServer'
  //Componentes:
@@ -48,4 +48,3 @@ const ActivityList = () => {
 };
 
 export default ActivityList;
-

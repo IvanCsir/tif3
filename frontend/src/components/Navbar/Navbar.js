@@ -3,7 +3,7 @@ import {React} from 'react'
 
 
 const Navbar = ()=>{
-  
+
 
     return (
       <nav className="navbar navbar-expand-lg bg-body-tertiary navbar-dark bg-dark">
@@ -25,7 +25,11 @@ const Navbar = ()=>{
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
               <li className="nav-item">
-                <Link className="nav-link active" aria-current="page" to="/actividades">
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to="/actividades"
+                >
                   Actividades
                 </Link>
               </li>
@@ -42,7 +46,14 @@ const Navbar = ()=>{
               <li className="nav-item">
                 <Link className="nav-link" to="/activityform">Agregar Actividad</Link>
               </li>
-              
+
+              {/* {tipoUsuario === "1" ? ( // Condición para mostrar el Link
+                <li className="nav-item">
+                  <Link className="nav-link" to="/activityform">
+                    Agregar Actividad
+                  </Link>
+                </li>
+              ) : null} */}
             </ul>
           </div>
         </div>
