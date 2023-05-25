@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useParams} from "react-router-dom";
-import { Button, Grid, TextField, Select, MenuItem, Alert} from "@mui/material";
+import { Button, Grid, TextField, Alert} from "@mui/material";
 import axios from 'axios';
 
 
@@ -9,30 +8,16 @@ import axios from 'axios';
 function DatosActivityForm(props) {
   const { id } = useParams();
   const [day, setDay] = useState('');
-  const [time, setTime] = useState('');
+  // const [time, setTime] = useState('');
   const [capacity, setCapacity] = useState('');
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('error');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
   const navigate = useNavigate()
-  // opciones del desplegable
-  const times = [
-    { label: '9.00hs - 10.00hs', value: '1' },
-    { label: '10.00hs - 11.00hs', value: '2' },
-    { label: '11.00hs - 12.00hs', value: '3' },
-    { label: '12.00hs - 13.00hs', value: '4' },
-    { label: '13.00hs - 14.00hs', value: '5' },
-    { label: '14.00hs - 15.00hs', value: '6' },
-    { label: '15.00hs - 16.00hs', value: '7' },
-    { label: '16.00hs - 17.00hs', value: '8' },
-    { label: '17.00hs - 18.00hs', value: '9' },
-    { label: '18.00hs - 19.00hs', value: '10' },
-    { label: '19.00hs - 20.00hs', value: '11' },
-    { label: '20.00hs - 21.00hs', value: '12' },
-    { label: '21.00hs - 22.00hs', value: '13' },
-
-  ];
+  
 
   const handleSubmit = (e) => {
     // e.preventDefault();
@@ -47,7 +32,8 @@ function DatosActivityForm(props) {
 
     const data = {
       day: day,
-      time: time,
+      start_time: startTime,
+      end_time: endTime,
       capacity: capacity,
 
     };
@@ -87,20 +73,32 @@ function DatosActivityForm(props) {
           required
           color="primary"
           autoFocus
-          type="date" 
+          type="date"
         />
       </Grid>
       <Grid item>
-        <Select value={time} onChange={(e) => setTime(e.target.value)} displayEmpty>
-          <MenuItem value="" disabled>
-            Time
-          </MenuItem>
-          {times.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
+        <TextField
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          // label="Hora de inicio"
+          required
+          color="primary"
+          type="time"
+          helperText="Hora de inicio"
+          
+        />
+      </Grid>
+      <Grid item>
+        <TextField
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
+          // label="Hora de finalización"
+          required
+          color="primary"
+          type="time"
+          helperText="Hora de finalización"
+
+        />
       </Grid>
       <Grid item>
         <TextField
@@ -119,7 +117,6 @@ function DatosActivityForm(props) {
           onClick={() => handleSubmit()}
           useNavigate
         >
-        
           Agregar
         </Button>
       </Grid>

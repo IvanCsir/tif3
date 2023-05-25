@@ -18,14 +18,15 @@ class Activity(models.Model):
 class DatosActivity(models.Model):
     id_act = models.ForeignKey(Activity, on_delete=models.CASCADE)
     day = models.DateField(default=date.today, null=True, blank=True)
-    time = models.CharField(max_length=10, choices=horarios, default="1")
+    start_time = models.TimeField(default='00:00')
+    end_time = models.TimeField(default='00:01')
     capacity = models.IntegerField(default=0)
     temperatura_max = models.CharField(max_length=50, null=True, blank=True)
     temperatura_min = models.CharField(max_length=50, null = True, blank=True)
     condiciones = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
-        unique_together = ('id_act', 'time', 'day')
+        unique_together = ('id_act', 'day', 'start_time', 'end_time')
 
     
 

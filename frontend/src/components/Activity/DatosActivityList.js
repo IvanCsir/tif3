@@ -22,8 +22,8 @@ function DatosActivityList() {
             return 1;
           } else {
             // Si las fechas son iguales, comparar por hora
-            const timeA = parseInt(a.time.replace(":", ""));
-            const timeB = parseInt(b.time.replace(":", ""));
+            const timeA = parseInt(a.start_time.replace(":", ""));
+            const timeB = parseInt(b.end_time.replace(":", ""));
             if (timeA < timeB) {
               return -1;
             } else if (timeA > timeB) {
@@ -66,7 +66,7 @@ function DatosActivityList() {
                 {dato.day}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Horario: {dato.time_display}
+                Horario: {dato.start_time} - {dato.end_time} 
               </Typography>
               <Typography variant="body1" gutterBottom>
                 Lugares disponibles: {dato.capacity}
