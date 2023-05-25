@@ -18,6 +18,7 @@ import './index.css';
 import DatosActivityList from './components/Activity/DatosActivityList';
 
 // const root = ReactDOM.createRoot(document.getElementById('root'));
+document.title = 'Club Member';
 ReactDOM.render(
   <BrowserRouter>
   <Navbar></Navbar>

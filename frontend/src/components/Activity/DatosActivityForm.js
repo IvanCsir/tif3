@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useParams} from "react-router-dom";
-import { Button, Grid, TextField, Select, MenuItem} from "@mui/material";
+import { Button, Grid, TextField, Select, MenuItem, Alert} from "@mui/material";
 import axios from 'axios';
 
 
@@ -11,6 +11,9 @@ function DatosActivityForm(props) {
   const [day, setDay] = useState('');
   const [time, setTime] = useState('');
   const [capacity, setCapacity] = useState('');
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
 
   const navigate = useNavigate()
   // opciones del desplegable
@@ -36,7 +39,9 @@ function DatosActivityForm(props) {
 
     const today = new Date().toISOString().split("T")[0]; // Obtener la fecha actual en formato YYYY-MM-DD
       if (day < today) {
-        alert("No se pueden seleccionar fechas pasadas.");
+        setAlertMessage('No se pueden seleccionar fechas pasadas.');
+        setAlertSeverity('error');
+        setAlertOpen(true);
       return;
     }
 
@@ -54,12 +59,15 @@ function DatosActivityForm(props) {
       })
       .then((response) => {
         console.log(response.data);
-        alert('Disponibilidad de lugares aregada correctamente');
         navigate("/actividades")
       })
       .catch((error) => {
-        alert("En el día y horario asignados ya hay disponibilidad")
-        console.error(error);
+        // alert("En el día y horario asignados ya hay disponibilidad")
+        // console.error(error);
+        setAlertMessage('En el día y horario asignados ya hay disponibilidad');
+        setAlertSeverity('error');
+        setAlertOpen(true);
+       
       });
   };
   return (
@@ -114,6 +122,13 @@ function DatosActivityForm(props) {
         
           Agregar
         </Button>
+      </Grid>
+      <Grid item>
+        {alertOpen && (
+          <Alert severity={alertSeverity} onClose={() => setAlertOpen(false)}>
+            {alertMessage}
+          </Alert>
+        )}
       </Grid>
     </Grid>
   );
