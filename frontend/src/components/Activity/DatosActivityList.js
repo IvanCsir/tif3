@@ -11,7 +11,8 @@ function DatosActivityList() {
   const [selectedStartTime, setSelectedStartTime] = useState('');
   const [selectedEndTime, setSelectedEndTime] = useState('');
   const [selectedTimeRange, setSelectedTimeRange] = useState('all');
-  const uniqueDates = [...new Set(datos.map((dato) => dato.day))];
+  // const uniqueDates = [...new Set(datos.map((dato) => dato.day))];
+  
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}/datos_activity/`)
@@ -98,13 +99,25 @@ function DatosActivityList() {
     }
   };
 
-  const formatDate = (dia) => {
-     const formattedDate = new Date(dia).toLocaleDateString(undefined, { weekday: 'long' });
-    
-    return formattedDate
-  }
-
+  //En esta función lo que hago es obtener el nombre del día de la fecha para luego mostrar en el form control
+  const formatDate = (fecha) => {
+    const options = { weekday: 'long' };
+    const date = new Date(fecha + 'T00:00:00-03:00'); // Agregar la zona horaria de Argentina
+    const formattedDate = new Intl.DateTimeFormat('es-AR', options).format(date);
   
+    return formattedDate;
+  };
+
+  //Lo que hago acá es que en el form control id=select-day-label no me salga
+  // varias veces la misma fecha si hay varios datos activity y que no me muestre
+  //fechas pasadas en el form control
+  const uniqueDates = [...new Set(datos
+    .filter((dato) => {
+      const activityDate = new Date(dato.day).setUTCHours(0, 0, 0, 0);
+      return activityDate > currentDate || (activityDate === currentDate && dato.start_time > currentTime);
+    })
+    .map((dato) => dato.day)
+  )];
 
   return (
     <div>
@@ -121,7 +134,7 @@ function DatosActivityList() {
         <Grid container justifyContent="center" alignItems="center" spacing={2}>
           <Grid item xs={12} sx={{ textAlign: "center" }}>
             <FormControl sx={{ minWidth: 150, my: 1 }}>
-              <InputLabel id="select-day-label">Día</InputLabel>
+              <InputLabel id="select-day-label">Fecha</InputLabel>
               <Select
                 labelId="select-day-label"
                 value={selectedDay}
