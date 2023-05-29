@@ -98,6 +98,14 @@ function DatosActivityList() {
     }
   };
 
+  const formatDate = (dia) => {
+     const formattedDate = new Date(dia).toLocaleDateString(undefined, { weekday: 'long' });
+    
+    return formattedDate
+  }
+
+  
+
   return (
     <div>
       <Box sx={{ my: 2 }}>
@@ -127,19 +135,6 @@ function DatosActivityList() {
                   </MenuItem>
                 ))}
               </Select>
-              {/* <Select
-                labelId="select-day-label"
-                value={selectedDay}
-                onChange={handleDayChange}
-                label="Día"
-              >
-                <MenuItem value="all">Todos</MenuItem>
-                {datos.map((dato) => (
-                  <MenuItem key={dato.id} value={dato.day}>
-                    {dato.day}
-                  </MenuItem>
-                ))}
-              </Select> */}
             </FormControl>
 
             <FormControl sx={{ minWidth: 150, my: 1 }}>
@@ -166,8 +161,8 @@ function DatosActivityList() {
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
               <Paper elevation={3} sx={{ p: 2, margin: "10px" }}>
-                <Typography variant="h5" gutterBottom>
-                  {dato.day}
+                <Typography variant="h5" gutterBottom sx={{textTransform: "capitalize"}} >
+                {formatDate(dato.day)} ({dato.day})
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                   Horario: {dato.start_time} - {dato.end_time}

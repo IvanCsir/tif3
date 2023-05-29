@@ -107,8 +107,6 @@ class DatosActivityView(viewsets.ViewSet):
             msg = {'error': 'no se pudo obtener el clima'}
             return msg
         
-    from django.db import transaction
-
     def obtener_datos_climaticos(self, datos_activity_list):
         city = "Mendoza"
         country = "Argentina"
