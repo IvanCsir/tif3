@@ -43,17 +43,6 @@ const Navbar = ()=>{
                   Pricing
                 </Link>
               </li> */}
-              <li className="nav-item">
-                <Link className="nav-link" to="/activityform">Agregar Actividad</Link>
-              </li>
-
-              {/* {tipoUsuario === "1" ? ( // Condición para mostrar el Link
-                <li className="nav-item">
-                  <Link className="nav-link" to="/activityform">
-                    Agregar Actividad
-                  </Link>
-                </li>
-              ) : null} */}
             </ul>
           </div>
         </div>

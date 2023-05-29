@@ -136,7 +136,35 @@ class DatosActivityView(viewsets.ViewSet):
                         datos_activity.save()
         return datos_activity_list
 
+## Este es para que no haga la llamada a la API si la actividad no es al aire libre:
+    # def obtener_datos_climaticos(self, datos_activity_list):
+    #     city = "Mendoza"
+    #     country = "Argentina"
+    #     with transaction.atomic():
+    #         for datos_activity in datos_activity_list:
+    #             if datos_activity.id_act.aire_libre:  # Verificar si es actividad al aire libre
+    #                 day = datos_activity.day
 
+    #                 datos_clima = self.obtener_pronostico(day, city, country)
+    #                 if datos_clima:
+    #                     # Busco el pronóstico correspondiente al día específico
+    #                     for pronostico_dia in datos_clima['data']:
+    #                         fecha_pronostico = datetime.strptime(pronostico_dia['datetime'], '%Y-%m-%d').date()
+    #                         if fecha_pronostico == day:
+    #                             datos_activity.temperatura_max = round(pronostico_dia['app_max_temp'])
+    #                             datos_activity.temperatura_min = round(pronostico_dia['app_min_temp'])
+    #                             datos_activity.condiciones = pronostico_dia['weather']['description']
+    #                             datos_activity.save()
+    #                             break
+    #             else:
+    #                 datos_activity.temperatura_max = None
+    #                 datos_activity.temperatura_min = None
+    #                 datos_activity.condiciones = None
+    #                 datos_activity.save()
+
+    #     return datos_activity_list
+
+## Este codigo era de cuando hacia la llamada a la API cuando agregaba deisponibilidad.
 
     # @action(detail=True, methods=['post'])
     # def crear_datos_activity(self, request, id_act=None):

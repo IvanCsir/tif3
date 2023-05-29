@@ -1,14 +1,18 @@
-import React, { useEffect, useState} from "react";
-import { Typography, Box } from "@mui/material";
+import React, { useEffect, useState,} from "react";
+import { useNavigate } from "react-router-dom";
+import { Typography, Box, IconButton } from "@mui/material";
 
 import * as activityserver from './ActivityServer'
  //Componentes:
 import ActivityItem from "./ActivityItem";
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 const ActivityList = () => {
-        //Atributo  //metodo     
+        //Atributo  //metodo
+    const navigate = useNavigate()    
     const [activities, setActivities] = useState([])
+    const tipoUsuario = localStorage.getItem('tipo_usuario');
 
     const listactivities = async () =>{
         try{
@@ -24,6 +28,25 @@ const ActivityList = () => {
         listactivities();
     }, []);
 
+    const handleAddActivity = () => {
+      navigate("/activityform");
+    };
+
+    const renderIcons = () => {
+      if (tipoUsuario === "1") {
+        return (
+          <React.Fragment>
+            <IconButton sx={{ width: '1em', height: '1em', ml: 1, marginTop: '-0.4rem' }} onClick={handleAddActivity}>
+              <AddCircleIcon sx={{ fontSize: '2rem' }}>
+                
+              </AddCircleIcon>
+            </IconButton>
+          </React.Fragment>
+        );
+      }
+      return null;
+    };
+
 
     return (
       <div className="row">
@@ -34,6 +57,8 @@ const ActivityList = () => {
             align="center"
           >
             actividades
+
+          {renderIcons()}
           </Typography>
         </Box>
         {activities.map((activity) => (
