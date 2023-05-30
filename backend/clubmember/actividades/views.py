@@ -15,7 +15,8 @@ from datetime import date, datetime
 from django.shortcuts import get_object_or_404
 import requests
 from django.db import transaction
-
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 # Create your views here.
 
@@ -162,8 +163,6 @@ class DatosActivityView(viewsets.ViewSet):
 
     #     return datos_activity_list
 
-## Este codigo era de cuando hacia la llamada a la API cuando agregaba deisponibilidad.
-
     # @action(detail=True, methods=['post'])
     # def crear_datos_activity(self, request, id_act=None):
     #     activity = get_object_or_404(Activity, id=id_act)
@@ -172,28 +171,6 @@ class DatosActivityView(viewsets.ViewSet):
     #     serializer = DatosCreateActivitySeralizer(data=data)
     #     if serializer.is_valid():
     #         serializer.save(id_act=activity)
-            
-    #         # Llamada a la función para obtener los datos de clima
-    #         day = serializer.validated_data['day']
-    #         city = "Mendoza"
-    #         country = "Argentina"
-    #         datos_clima = self.obtener_pronostico(day, city, country)
-            
-    #         if datos_clima:
-    #             activity = serializer.instance.id_act
-    #             if activity.aire_libre:
-    #                 # Busco el pronóstico correspondiente al día específico
-    #                 for pronostico_dia in datos_clima['data']:
-    #                     fecha_pronostico = datetime.strptime(pronostico_dia['datetime'], '%Y-%m-%d').date()
-    #                     if fecha_pronostico == day:
-                            
-    #                         serializer.instance.temperatura_max = round(pronostico_dia['app_max_temp'])
-    #                         serializer.instance.temperatura_min = round(pronostico_dia['app_min_temp'])
-    #                         serializer.instance.condiciones = pronostico_dia['weather']['description']
-    #                         # Guardo los cambios en la instancia de DatosActivity
-    #                         serializer.instance.save()
-    #                         break
-            
     #         return Response(serializer.data, status=status.HTTP_201_CREATED)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -201,11 +178,26 @@ class DatosActivityView(viewsets.ViewSet):
     def crear_datos_activity(self, request, id_act=None):
         activity = get_object_or_404(Activity, id=id_act)
         data = request.data.copy()
-        data['id_act'] = activity.id
+        recurrence = int(data.pop('recurrence', 1))  # Obtener el valor de recurrence y eliminarlo del diccionario de datos
+
         serializer = DatosCreateActivitySeralizer(data=data)
         if serializer.is_valid():
-            serializer.save(id_act=activity)
+            initial_instance = serializer.save(id_act=activity)
+            
+            # Crear instancias adicionales según la cantidad de repeticiones
+            for i in range(1, recurrence):
+                instance = DatosActivity.objects.create(
+                    id_act=activity,
+                    day=initial_instance.day + timedelta(weeks=i),  # Agregar una semana por cada repetición
+                    time=initial_instance.time,
+                    capacity=initial_instance.capacity,
+                    temperatura_max=initial_instance.temperatura_max,
+                    temperatura_min=initial_instance.temperatura_min,
+                    condiciones=initial_instance.condiciones
+                )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     
