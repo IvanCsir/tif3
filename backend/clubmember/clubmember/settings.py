@@ -43,7 +43,16 @@ INSTALLED_APPS = [
     'accounts',
     'user_profiles'
 ]
-
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         'LOCATION': 'unique-suffix',  # Proporciona un sufijo único para evitar conflictos de caché en entornos de desarrollo
+#         'TIMEOUT': 60,  # Duración de caché en segundos (aquí se configura a 1 hora)
+#         'OPTIONS': {
+#             'MAX_ENTRIES': 1000,  # Número máximo de entradas en caché
+#         },
+#     }
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
