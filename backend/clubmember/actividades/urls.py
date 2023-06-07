@@ -1,9 +1,12 @@
 from django.urls import path
-from .views import ActivityView, DatosActivityView
+from .views import ActivityView, DatosActivityView, ReservaView
 
 urlpatterns = [
     path('activity',ActivityView.as_view()),
     path('activity/<int:id>',ActivityView.as_view()),
     path('activity/<int:id_act>/datos/', DatosActivityView.as_view({'post': 'crear_datos_activity'}), name='crear_datos_activity'),
     path('activity/<int:id_act>/datos_activity/', DatosActivityView.as_view({'get': 'lugares_disponibles'}), name='lugares_disponibles'),
+    path('activity/<int:id_act>/reservar/<int:id_datos_activity>/', ReservaView.as_view({'post': 'reservar'}), name='reservar'),
+    path('activity/<int:id_user>/reservas/', ReservaView.as_view({'get':'reservas_por_usuario'}), name="reservas_por_usuario"),
+    path('activity/<int:id_act>/cancelar_reserva/<int:id_datos_activity>/', ReservaView.as_view({'delete': 'cancelar_reserva'}), name='cancelar_reserva'),
 ]

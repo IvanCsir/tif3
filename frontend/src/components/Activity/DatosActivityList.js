@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel } from "@mui/material";
+import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel} from "@mui/material";
+import ReservarButton from "./Reservation"
 
 function DatosActivityList() {
   const { id } = useParams();
@@ -198,6 +199,8 @@ function DatosActivityList() {
                       </Typography>
                     </>
                   )}
+                  <ReservarButton id_act={id} id_datos_activity={dato.id}></ReservarButton>
+
               </Paper>
             </Grid>
           ))

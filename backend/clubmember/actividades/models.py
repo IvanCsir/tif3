@@ -4,6 +4,7 @@ from .choices import horarios
 from datetime import date
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Activity(models.Model):
@@ -30,13 +31,11 @@ class DatosActivity(models.Model):
 
     
 
-# class Reservation(models.Model):
-#     id_datos_act = models.ForeignKey(DatosActivity, on_delete=models.CASCADE)
-#     id_user = models.ForeignKey(DatosUsuarios, on_delete=models.CASCADE)
-#     reservar = models.BooleanField(default=False)
 
-#     def save(self, *args, **kwargs):
-#         if self.reservar:
-#             self.id_datos_act.capacity -= 1
-#             self.id_datos_act.save()
-#         super(Reservation, self).save(*args, **kwargs)
+class Reserva(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    datos_activity = models.ForeignKey(DatosActivity, on_delete=models.CASCADE)
+    fecha_reserva = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'datos_activity')

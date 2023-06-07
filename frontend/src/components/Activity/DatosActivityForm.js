@@ -242,7 +242,7 @@ function DatosActivityForm(props) {
         <TextField
           value={capacity}
           onChange={(e) => setCapacity(Number(e.target.value))}
-          label="Capacity"
+          label="Capacidad"
           required
           color="primary"
           type="number"
@@ -252,7 +252,7 @@ function DatosActivityForm(props) {
         <TextField
           value={recurrence}
           onChange={(e) => setRecurrence(Number(e.target.value))}
-          label="Recurrence"
+          label="Recurrencia"
           required
           color="primary"
           type="number"

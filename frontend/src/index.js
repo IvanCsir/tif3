@@ -16,6 +16,8 @@ import DatosActivityForm from './components/Activity/DatosActivityForm';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css';
 import DatosActivityList from './components/Activity/DatosActivityList';
+import ReservaList from './components/Activity/ReservationList';
+import Logout from './components/Users/Logout';
 
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 document.title = 'Club Member';
@@ -27,11 +29,13 @@ ReactDOM.render(
         <Route exact path="/" element={<Login />}/>
         {/* <Route path="/login" Component={Login}/> */}
         <Route path="/register" element={<Register />} />
+        <Route path="/logout" element={<Logout/>}/>
         <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
         <Route path="/actividades" Component={ActivityList}/>
         <Route path="/activityForm" Component={ActivityForm}/>
         <Route path="/updateActivity/:id" Component={ActivityForm}/>
-        <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>      
+        <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>
+        <Route path="/usuario/:id_user/reservas/" Component={ReservaList}/>    
 
 
       </Routes>

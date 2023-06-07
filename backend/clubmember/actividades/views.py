@@ -5,12 +5,12 @@ from django.http.response import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from .models import Activity, DatosActivity
+from .models import Activity, DatosActivity, Reserva
 from rest_framework.response import Response
 import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer
+from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer, ReservaSerializer, TraerReservaSerializer
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
 import requests
@@ -18,6 +18,13 @@ from django.db import transaction
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from django.views.decorators.cache import cache_page    
+from django.db.models import F
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+
+
 
 # Create your views here.
 
@@ -97,7 +104,7 @@ class DatosActivityView(viewsets.ViewSet):
         params = {
         "city": city,
         "country": country,
-        "key": "3ad769e4b44845d499ba94cc7d0eaf87",
+        "key": "b6925167beb74b49b788c2684550df25",
         "lang": "es",
     }
 
@@ -220,7 +227,60 @@ class DatosActivityView(viewsets.ViewSet):
         serializer = DatosActivitySerializer(datos_activity_list, many=True)
         return Response(serializer.data)
 
+class ReservaView(viewsets.ViewSet):
+    @action(detail=True, methods=['post'])
+    def reservar(self, request, id_act=None, id_datos_activity=None):
+        datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
+        serializer = ReservaSerializer(data=request.data, context={'request': request})
 
-class Reservation(viewsets.ViewSet):
+        if serializer.is_valid():
+            usuario_id = request.data.get('usuario')  # Obtener el ID del usuario del cuerpo de la solicitud
+            usuario = User.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
+
+            reserva_existente = Reserva.objects.filter(usuario=usuario, datos_activity=datos_activity).exists()
+            if reserva_existente:
+                return Response({'message': 'Ya has realizado una reserva en esta actividad'}, status=status.HTTP_400_BAD_REQUEST)
+
+            capacidad_actualizada = datos_activity.capacity - 1
+            if capacidad_actualizada < 0:
+                return Response({'message': 'No hay capacidad disponible para realizar la reserva'}, status=status.HTTP_400_BAD_REQUEST)
+
+            with transaction.atomic():
+                serializer.save(usuario=usuario, datos_activity=datos_activity)
+                datos_activity.capacity = F('capacity') - 1
+                datos_activity.save()
+            
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    pass
+    @action(detail=True, methods=['GET'])
+    def reservas_por_usuario(self, request, id_user=None):
+        reservas = Reserva.objects.filter(usuario_id=id_user).prefetch_related('datos_activity')
+        serializer = TraerReservaSerializer(reservas, many=True)
+        return Response(serializer.data)
+
+    # def enviar_mail():
+    #     send_mail(
+    #             'Confirmación de reserva',
+    #             'Has realizado una reserva exitosamente.',
+    #             'clubmember.mza@gmail.com',
+    #             # [usuario.email],
+    #             ["ivanfreiberg@gmail.com"],
+    #             fail_silently=False,
+    #         )
+
+    # @action(detail=True, methods=['delete'], url_path='cancelar_reserva/(?P<id_datos_activity>\d+)')
+    # def cancelar_reserva(self, request, id_act=None, id_datos_activity=None):
+    #     datos_activity = get_object_or_404(DatosActivity, id_act=id_datos_activity)
+    #     usuario = request.user.id
+    #     reserva = get_object_or_404(Reserva, usuario=usuario, datos_activity=datos_activity)
+        
+    #     with transaction.atomic():
+    #         datos_activity.capacity = F('capacity') + 1
+    #         datos_activity.save()
+    #         reserva.delete()
+
+    #     return Response({'message': 'Reserva cancelada'}, status=status.HTTP_200_OK)
+

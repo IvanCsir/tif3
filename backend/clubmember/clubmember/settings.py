@@ -65,6 +65,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
 ]
+
+# Configuración de sesión
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False  # Cambiar a True en producción con HTTPS
+
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     # Agrega aquí los dominios permitidos
@@ -172,4 +178,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY= False
-    
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'i.freiberg@alumno.um.edu.ar'  # Correo electrónico del remitente
+EMAIL_HOST_PASSWORD = 'if42243608'  # Contraseña del correo electrónico del remitente

@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import DatosActivity
+from .models import DatosActivity, Reserva
 from .choices import horarios
+from django.contrib.auth.models import User
+
 
 class DatosCreateActivitySeralizer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +25,36 @@ class DatosActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model= DatosActivity
         fields= '__all__'
+
+class ReservaSerializer(serializers.ModelSerializer):
+    datos_activity = serializers.PrimaryKeyRelatedField(read_only=True)
+    usuario = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    # datos_activity = DatosActivitySerializer()
+
+    class Meta:
+        model = Reserva
+        fields = ('usuario', 'datos_activity', 'fecha_reserva')
+        read_only_fields = ('usuario',)
+
+class TraerReservaSerializer(serializers.ModelSerializer):
+    datos_activity = serializers.PrimaryKeyRelatedField(read_only=True)
+    usuario = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    datos_activity = DatosActivitySerializer()
+    #Agrego estos dos campos
+    activity_name = serializers.SerializerMethodField()
+    activity_lugar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reserva
+        fields = ('usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar")
+        read_only_fields = ('usuario',)
+
+    def get_activity_name(self, obj):
+        return obj.datos_activity.id_act.name
+    
+    def get_activity_lugar(self, obj):
+        estado =  obj.datos_activity.id_act.aire_libre
+        if estado == True:
+            return "AIRE LIBRE"
+        else:
+            return "TECHADO"
