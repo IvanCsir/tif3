@@ -33,7 +33,7 @@ class DatosActivity(models.Model):
 
 
 class Reserva(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(DatosUsuarios, on_delete=models.CASCADE)
     datos_activity = models.ForeignKey(DatosActivity, on_delete=models.CASCADE)
     fecha_reserva = models.DateTimeField(auto_now_add=True)
 

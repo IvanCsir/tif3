@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DatosActivity, Reserva
+from .models import DatosActivity, Reserva, DatosUsuarios
 from .choices import horarios
 from django.contrib.auth.models import User
 
@@ -28,7 +28,7 @@ class DatosActivitySerializer(serializers.ModelSerializer):
 
 class ReservaSerializer(serializers.ModelSerializer):
     datos_activity = serializers.PrimaryKeyRelatedField(read_only=True)
-    usuario = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    usuario = serializers.PrimaryKeyRelatedField(queryset=DatosUsuarios.objects.all())
     # datos_activity = DatosActivitySerializer()
 
     class Meta:

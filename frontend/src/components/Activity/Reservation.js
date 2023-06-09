@@ -20,14 +20,17 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
         axios.post(`http://127.0.0.1:8000/api/activities/activity/${id_act}/reservar/${id_datos_activity}/`, data)
         .then(response => {
             // Manejar la respuesta exitosa
-            console.log(response.data);
             setAlertMessage('Reserva realizada con éxito');
             setAlertSeverity('success');
             setAlertOpen(true);
             setTimeout(() => {
                 window.location.reload(); // Refrescar la página después de 5 segundos
               }, 3000); // Retardo de 5000 milisegundos (5 segundos)
-        })
+              console.log(response.data);
+              console.log(id_usuario);
+        }
+        )
+        
         .catch(error => {
             
             setAlertMessage('Usted ya reservó esta disponibilidad');

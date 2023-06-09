@@ -23,8 +23,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-
-
+from accounts.models import DatosUsuarios
+from urllib.parse import urlencode
+import urllib.parse
 
 # Create your views here.
 
@@ -230,13 +231,17 @@ class DatosActivityView(viewsets.ViewSet):
 class ReservaView(viewsets.ViewSet):
     @action(detail=True, methods=['post'])
     def reservar(self, request, id_act=None, id_datos_activity=None):
+        # print(request.user)
         datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
+        # actividad = get_object_or_404(Activity, id)
         serializer = ReservaSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
             usuario_id = request.data.get('usuario')  # Obtener el ID del usuario del cuerpo de la solicitud
-            usuario = User.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
-
+            usuario = DatosUsuarios.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
+            print(usuario_id)
+            print(usuario)
+            print(usuario.email)
             reserva_existente = Reserva.objects.filter(usuario=usuario, datos_activity=datos_activity).exists()
             if reserva_existente:
                 return Response({'message': 'Ya has realizado una reserva en esta actividad'}, status=status.HTTP_400_BAD_REQUEST)
@@ -250,6 +255,26 @@ class ReservaView(viewsets.ViewSet):
                 datos_activity.capacity = F('capacity') - 1
                 datos_activity.save()
             
+            # Traigo los atributos de datos_activity
+            mail_dia = datos_activity.day #YYYY/MM/DD
+            mail_start_time = datos_activity.start_time
+            mail_end_time = datos_activity.end_time
+            mail_actividad_nombre = datos_activity.id_act.name
+            mail_actividad_lugar = datos_activity.id_act.aire_libre
+            mensaje_lugar = ""
+
+
+            # Envío de correo electrónico
+            subject = 'Reserva exitosa '
+            if mail_actividad_lugar == True:
+                mensaje_lugar = "al aire libre"
+            else:
+                mensaje_lugar = "bajo techo"
+            message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
+            message += f'Fecha: {mail_dia}\n'
+            message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+           
+            send_mail(subject, message, 'i.freiberg@gmail.com', [usuario.email])
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -260,15 +285,24 @@ class ReservaView(viewsets.ViewSet):
         reservas = Reserva.objects.filter(usuario_id=id_user).prefetch_related('datos_activity')
         serializer = TraerReservaSerializer(reservas, many=True)
         return Response(serializer.data)
+    
+# class EmailViewSet(viewsets.ViewSet):
+#     @action(detail=False, methods=['post'])
+#     def send_email(self, request):
+#         # Obtener los datos del cuerpo de la solicitud POST
+#         email = request.data.get('email')
+#         message = request.data.get('message')
 
-    # def enviar_mail():
-    #     send_mail(
-    #             'Confirmación de reserva',
-    #             'Has realizado una reserva exitosamente.',
-    #             'clubmember.mza@gmail.com',
-    #             # [usuario.email],
-    #             ["ivanfreiberg@gmail.com"],
-    #             fail_silently=False,
+#         # Envío de correo electrónico
+#         send_mail(
+#             'Asunto del correo electrónico',
+#             message,
+#             'remite@example.com',  # Dirección de correo electrónico del remitente
+#             [email],  # Lista de direcciones de correo electrónico de destino
+#             fail_silently=False,
+#         )
+
+#         return Response({'success': True})
     #         )
 
     # @action(detail=True, methods=['delete'], url_path='cancelar_reserva/(?P<id_datos_activity>\d+)')
