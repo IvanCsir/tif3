@@ -25,7 +25,10 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from accounts.models import DatosUsuarios
 from urllib.parse import urlencode
-import urllib.parse
+from django.core.mail import EmailMessage
+import tempfile
+from icalendar import Calendar, Event
+import os
 
 # Create your views here.
 
@@ -255,7 +258,7 @@ class ReservaView(viewsets.ViewSet):
                 datos_activity.capacity = F('capacity') - 1
                 datos_activity.save()
             
-            # Traigo los atributos de datos_activity
+            # Obtener los atributos de datos_activity
             mail_dia = datos_activity.day #YYYY/MM/DD
             mail_start_time = datos_activity.start_time
             mail_end_time = datos_activity.end_time
@@ -263,18 +266,52 @@ class ReservaView(viewsets.ViewSet):
             mail_actividad_lugar = datos_activity.id_act.aire_libre
             mensaje_lugar = ""
 
+            # Crea un objeto Calendar
+            cal = Calendar()
 
-            # Envío de correo electrónico
-            subject = 'Reserva exitosa '
-            if mail_actividad_lugar == True:
-                mensaje_lugar = "al aire libre"
-            else:
-                mensaje_lugar = "bajo techo"
-            message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-            message += f'Fecha: {mail_dia}\n'
-            message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+            # Crea un objeto Event
+            event = Event()
+
+            # Define las propiedades del Evento
+            event.add('summary', f'Reserva para {mail_actividad_nombre} {mensaje_lugar}')
+            event.add('location', 'Ubicación del evento')
+            event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
+            event.add('dtend', datetime.combine(mail_dia, mail_end_time))
+
+            # Agrega el Evento al Calendar
+            cal.add_component(event)
+
+            # Guarda el Calendar en un archivo temporal
+            with tempfile.NamedTemporaryFile(suffix='.ics', prefix='evento_', delete=False) as f:
+                filename = f.name
+                f.write(cal.to_ical())
+                f.flush()
+
+                # Cambia el nombre del archivo temporal
+                new_filename = f'{mail_actividad_nombre}_.ics'
+                os.rename(filename, new_filename)
+
+                # Envía el correo electrónico con el archivo adjunto
+                subject = 'Reserva exitosa'
+                message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
+                message += f'Fecha: {mail_dia}\n'
+                message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+
+                email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
+                email.attach_file(new_filename)
+                email.send()
+
+            # # Envío de correo electrónico
+            # subject = 'Reserva exitosa '
+            # if mail_actividad_lugar == True:
+            #     mensaje_lugar = "al aire libre"
+            # else:
+            #     mensaje_lugar = "bajo techo"
+            # message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
+            # message += f'Fecha: {mail_dia}\n'
+            # message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
            
-            send_mail(subject, message, 'i.freiberg@gmail.com', [usuario.email])
+            # send_mail(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
