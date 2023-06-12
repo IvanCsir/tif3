@@ -194,4 +194,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'i.freiberg@alumno.um.edu.ar'  # Correo electrónico del remitente
-EMAIL_HOST_PASSWORD = ''  # Contraseña del correo electrónico del remitente
+EMAIL_HOST_PASSWORD = 'if42243608'  # Contraseña del correo electrónico del remitente

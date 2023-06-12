@@ -12,14 +12,20 @@ import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
+import { Alert} from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import { useState } from "react";
 
 const theme = createTheme();
 
+
 export default function Login() {
   const navigate = useNavigate();
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -51,7 +57,9 @@ export default function Login() {
         }
       })
       .catch(function (error) {
-        alert("Credenciales incorrectas / Ocurrio un error")
+        setAlertMessage('Error en el nombre de usuario o contraseña, intente nuevamente');
+          setAlertSeverity('error');
+          setAlertOpen(true);
       });
   };
 
@@ -126,6 +134,13 @@ export default function Login() {
               </Grid>
             </Grid>
           </Box>
+          <Box mt={2}>
+          {alertOpen && (
+            <Alert severity={alertSeverity} onClose={() => setAlertOpen(false)}>
+              {alertMessage}
+            </Alert>
+          )}
+        </Box>
         </Box>
 
       </Container>

@@ -97,10 +97,11 @@
 // }
 // export default SignUp;
 
-import { Button, Grid, TextField } from "@mui/material";
+import { Button, Grid, TextField, Alert, Box } from "@mui/material";
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
+
 
 const Register = () => {
   const [nombre, setNombre] = React.useState("");
@@ -110,6 +111,10 @@ const Register = () => {
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setconfirmPassword] = React.useState("");
   const navigate = useNavigate();
+
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
 
   const crearUsuario = () => {
     if (password === confirmPassword) {
@@ -128,11 +133,18 @@ const Register = () => {
           headers: { "Content-Type": "application/json" },
         })
         .then((response) => {
-          alert("Usuario creado con exito");
-          navigate("/");
+          setAlertMessage('Usuario creado con éxito');
+          setAlertSeverity('success');
+          setAlertOpen(true);
+          setTimeout(() => {
+            navigate("/");
+          
+          }, 2000);
         })
         .catch((error) => {
-          alert("Ocurrio un error al crear el usuario");
+          setAlertMessage('Error en algún campo, vuelva a intentarlo');
+          setAlertSeverity('error');
+          setAlertOpen(true);
         });
     } else {
       alert("Las contrasenas no coinciden");
@@ -213,6 +225,13 @@ const Register = () => {
           Registrarme
         </Button>
       </Grid>
+      <Box mt={2}>
+          {alertOpen && (
+            <Alert severity={alertSeverity} onClose={() => setAlertOpen(false)}>
+              {alertMessage}
+            </Alert>
+          )}
+        </Box>
     </Grid>
   );
 };

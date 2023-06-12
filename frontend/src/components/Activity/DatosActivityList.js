@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar} from "@mui/material";
 import ReservarButton from "./Reservation"
+import { green } from '@mui/material/colors';
 
 
 
@@ -135,7 +136,6 @@ function DatosActivityList() {
   
   return (
     <div>
-
       <Box sx={{ my: 2 }}>
         <Typography
           variant="h4"
@@ -188,13 +188,41 @@ function DatosActivityList() {
         {filteredDatos.length > 0 ? (
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
-              <Paper elevation={3} sx={{ p: 2, margin: "10px" }}>
-                <Typography
+              <Paper elevation={24} sx={{ p: 2, margin: "5px" }}>
+                {/* <Typography
                   variant="h5"
                   gutterBottom
                   sx={{ textTransform: "capitalize" }}
                 >
-                  {formatDate(dato.day)} ({dato.day})
+                  {formatDate(dato.day)} ({dato.day}) {<Avatar sx={{ bgcolor: green[400] }}> {dato.capacity}</Avatar>}
+                </Typography> */}
+                <Typography
+                  variant="h5"
+                  gutterBottom
+                  sx={{
+                    textTransform: "capitalize",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>
+                    {formatDate(dato.day)} ({dato.day})
+                  </span>
+                  <span
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      marginLeft: "auto",
+                      fontSize: "0.9rem",
+                      color: "#888",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Avatar sx={{ bgcolor: green[400], marginRight: "0.5rem" }}>
+                      {dato.capacity}
+                    </Avatar>
+                    <span>Disponibles</span>
+                  </span>
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                   Horario: {dato.start_time} - {dato.end_time}
@@ -202,22 +230,26 @@ function DatosActivityList() {
                 <Typography variant="body1" gutterBottom>
                   Lugares disponibles: {dato.capacity}
                 </Typography>
-                
+
                 {dato.temperatura_max &&
                   dato.temperatura_min &&
                   dato.condiciones && (
                     <>
                       <Typography variant="body1" gutterBottom>
-                      {dato.condiciones} {<img src={getIconPath(dato.icon)} alt={dato.icon} style={{ width: '50px', height: '50px' }} />} - Min {dato.temperatura_min}°C - Max {dato.temperatura_max}°C 
-
+                        {dato.condiciones}{" "}
+                        {
+                          <img
+                            src={getIconPath(dato.icon)}
+                            alt={dato.icon}
+                            style={{ width: "50px", height: "50px" }}
+                          />
+                        }{" "}
+                        - Min {dato.temperatura_min}°C - Max{" "}
+                        {dato.temperatura_max}°C
                       </Typography>
-                      <Typography variant="body1" gutterBottom>
-                      </Typography>
-                      {console.log(dato.icon)}
+                      <Typography variant="body1" gutterBottom></Typography>
                     </>
                   )}
-                  
-
 
                 <ReservarButton
                   id_act={id}
