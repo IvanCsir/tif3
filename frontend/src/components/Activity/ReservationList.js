@@ -54,14 +54,16 @@ function ReservaList() {
         <Grid container justifyContent="center" alignItems="center" spacing={2}>
           {reservasFiltradasFecha.map((reserva) => (
             <Grid item xs={12} sm={6} md={4} key={reserva.id}>
-              <Paper elevation={3} sx={{ p: 2, margin: "10px" }}>
+              <Paper className="card card-body card-highlight" elevation={3} sx={{ p: 2, margin: "10px" }}>
                 <Typography
                   sx={{ textTransform: "uppercase", fontWeight: "bold" }}
                   align="center"
                 >
                   {reserva.activity_name} - {reserva.activity_lugar}
                 </Typography>
+                
                 <Typography> Día: {reserva.datos_activity.day}</Typography>
+                
                 <Typography>
                   {" "}
                   Horario: {reserva.datos_activity.start_time} -{" "}

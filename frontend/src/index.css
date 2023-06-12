@@ -9,7 +9,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
 }
+.card-highlight:hover {
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.738);
+}
+.card-secondary:hover {
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.738);
+}
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

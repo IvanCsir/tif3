@@ -52,7 +52,12 @@ function DatosActivityList() {
             }
           }
         });
-        setDatos(data);
+        const dataWithInitialCapacity = data.map((dato) => ({
+          ...dato,
+          initialCapacity: dato.capacity,
+        }));
+  
+        setDatos(dataWithInitialCapacity);
       });
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}`)
       .then((response) => response.json())
@@ -64,11 +69,11 @@ function DatosActivityList() {
 
   const currentDate = new Date().setUTCHours(0, 0, 0, 0); // Obtener la fecha actual
   const currentTime = new Date().toLocaleTimeString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", hour12: false });
-
   // Filtrar las fechas que no hayan pasado
   const filteredDatos = datos.filter((dato) => {
+  
     const activityDate = new Date(dato.day).setUTCHours(0, 0, 0, 0);
-
+   
     // Filtra por día si se ha seleccionado un día
     if (selectedDay && dato.day !== selectedDay) {
       return false;
@@ -133,7 +138,6 @@ function DatosActivityList() {
     .map((dato) => dato.day)
   )];
   
-  
   return (
     <div>
       <Box sx={{ my: 2 }}>
@@ -188,7 +192,7 @@ function DatosActivityList() {
         {filteredDatos.length > 0 ? (
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
-              <Paper elevation={24} sx={{ p: 2, margin: "5px" }}>
+              <Paper className="card card-body card-secondary" elevation={24} sx={{ p: 2, margin: "5px" }}>
                 {/* <Typography
                   variant="h5"
                   gutterBottom
@@ -227,15 +231,15 @@ function DatosActivityList() {
                 <Typography variant="body1" gutterBottom>
                   Horario: {dato.start_time} - {dato.end_time}
                 </Typography>
-                <Typography variant="body1" gutterBottom>
+                {/* <Typography variant="body1" gutterBottom>
                   Lugares disponibles: {dato.capacity}
-                </Typography>
+                </Typography> */}
 
                 {dato.temperatura_max &&
                   dato.temperatura_min &&
                   dato.condiciones && (
                     <>
-                      <Typography variant="body1" gutterBottom>
+                      <Typography variant="body1" gutterBottom>   
                         {dato.condiciones}{" "}
                         {
                           <img
@@ -243,14 +247,15 @@ function DatosActivityList() {
                             alt={dato.icon}
                             style={{ width: "50px", height: "50px" }}
                           />
-                        }{" "}
-                        - Min {dato.temperatura_min}°C - Max{" "}
+                        }{"   "}
+                        
+                        Min {dato.temperatura_min}°C - Max{" "}
                         {dato.temperatura_max}°C
                       </Typography>
                       <Typography variant="body1" gutterBottom></Typography>
                     </>
                   )}
-
+                <br></br>
                 <ReservarButton
                   id_act={id}
                   id_datos_activity={dato.id}

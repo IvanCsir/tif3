@@ -248,9 +248,6 @@ class ReservaView(viewsets.ViewSet):
         if serializer.is_valid():
             usuario_id = request.data.get('usuario')  # Obtener el ID del usuario del cuerpo de la solicitud
             usuario = DatosUsuarios.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
-            print(usuario_id)
-            print(usuario)
-            print(usuario.email)
             reserva_existente = Reserva.objects.filter(usuario=usuario, datos_activity=datos_activity).exists()
             if reserva_existente:
                 return Response({'message': 'Ya has realizado una reserva en esta actividad'}, status=status.HTTP_400_BAD_REQUEST)
@@ -312,18 +309,6 @@ class ReservaView(viewsets.ViewSet):
                 email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
                 email.attach_file(new_filename)
                 email.send()
-
-            # # Envío de correo electrónico
-            # subject = 'Reserva exitosa '
-            # if mail_actividad_lugar == True:
-            #     mensaje_lugar = "al aire libre"
-            # else:
-            #     mensaje_lugar = "bajo techo"
-            # message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-            # message += f'Fecha: {mail_dia}\n'
-            # message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-           
-            # send_mail(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
