@@ -19,7 +19,7 @@ function ReservaList() {
       .catch(error => {
         console.log(error);
       });
-  }, []);
+  },);
 
   const currentDate = new Date().setUTCHours(0, 0, 0, 0);
   // Ordena las reservas por fecha en orden ascendente
@@ -35,6 +35,10 @@ function ReservaList() {
     return reservaDate >= currentDate;
   });
 
+  const getIconPath = (iconName) => {
+    return require(`./icons/${iconName}.png`);
+  };
+  
   return (
     <div>
       <Box sx={{ my: 2 }}>
@@ -68,19 +72,14 @@ function ReservaList() {
                   reserva.datos_activity.condiciones && (
                     <>
                       <Typography variant="body1" gutterBottom>
-                        Temperatura máxima:{" "}
-                        {reserva.datos_activity.temperatura_max} °C
+                      {reserva.datos_activity.condiciones} {<img src={getIconPath(reserva.datos_activity.icon)} alt={reserva.datos_activity.icon} style={{ width: '50px', height: '50px' }} />} - Min {reserva.datos_activity.temperatura_min}°C - Max {reserva.datos_activity.temperatura_max}°C 
+
                       </Typography>
                       <Typography variant="body1" gutterBottom>
-                        Temperatura mínima:{" "}
-                        {reserva.datos_activity.temperatura_min} °C
-                      </Typography>
-                      <Typography variant="body1" gutterBottom>
-                        Condiciones: {reserva.datos_activity.condiciones}
                       </Typography>
                     </>
                   )}
-                <Typography>{reserva.fecha_reserva}</Typography>
+                {/* <Typography>{reserva.fecha_reserva}</Typography> */}
               </Paper>
             </Grid>
           ))}

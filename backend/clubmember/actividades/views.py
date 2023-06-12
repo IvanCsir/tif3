@@ -150,6 +150,7 @@ class DatosActivityView(viewsets.ViewSet):
 
 ## Este es para que no haga la llamada a la API si la actividad no es al aire libre:
     def obtener_datos_climaticos(self, datos_activity_list):
+
         city = "Mendoza"
         country = "Argentina"
         with transaction.atomic(): ## Si no se hacen todas las transacciones, se revierte la transaccion
@@ -159,19 +160,24 @@ class DatosActivityView(viewsets.ViewSet):
 
                     datos_clima = self.obtener_pronostico(day, city, country)
                     if datos_clima:
+                        
                         # Busco el pronóstico correspondiente del día específico
                         for pronostico_dia in datos_clima['data']:
                             fecha_pronostico = datetime.strptime(pronostico_dia['datetime'], '%Y-%m-%d').date()
                             if fecha_pronostico == day:
+                                datos_activity.icon = pronostico_dia['weather']['icon']
                                 datos_activity.temperatura_max = round(pronostico_dia['app_max_temp'])
                                 datos_activity.temperatura_min = round(pronostico_dia['app_min_temp'])
                                 datos_activity.condiciones = pronostico_dia['weather']['description']
+                                
                                 datos_activity.save()
                                 break
                 else:
                     datos_activity.temperatura_max = None
                     datos_activity.temperatura_min = None
                     datos_activity.condiciones = None
+                    datos_activity.icon = None
+
                     datos_activity.save()
 
         return datos_activity_list
@@ -266,6 +272,10 @@ class ReservaView(viewsets.ViewSet):
             mail_actividad_lugar = datos_activity.id_act.aire_libre
             mensaje_lugar = ""
 
+            if mail_actividad_lugar == True:
+                mensaje_lugar = "al aire libre"
+            else:
+                mensaje_lugar = "bajo techo"
             # Crea un objeto Calendar
             cal = Calendar()
 
@@ -290,6 +300,8 @@ class ReservaView(viewsets.ViewSet):
                 # Cambia el nombre del archivo temporal
                 new_filename = f'{mail_actividad_nombre}_.ics'
                 os.rename(filename, new_filename)
+
+                
 
                 # Envía el correo electrónico con el archivo adjunto
                 subject = 'Reserva exitosa'

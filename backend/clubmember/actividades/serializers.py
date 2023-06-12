@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class DatosCreateActivitySeralizer(serializers.ModelSerializer):
     class Meta:
         model = DatosActivity
-        fields = ('day','start_time', 'end_time','capacity', 'temperatura_max','temperatura_min', 'condiciones')
+        fields = ('day','start_time', 'end_time','capacity', 'temperatura_max','temperatura_min', 'condiciones', "icon")
 
 class DatosActivitySerializer(serializers.ModelSerializer):
     start_time = serializers.TimeField(format='%H:%M')

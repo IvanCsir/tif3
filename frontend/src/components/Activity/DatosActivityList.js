@@ -1,7 +1,16 @@
+// Este es el original sin pasarlo por chat GPT
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel} from "@mui/material";
+import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar} from "@mui/material";
 import ReservarButton from "./Reservation"
+
+
+
+
+// Importa más iconos si es necesario
+
+
+
 
 function DatosActivityList() {
   const { id } = useParams();
@@ -13,13 +22,16 @@ function DatosActivityList() {
   const [selectedEndTime, setSelectedEndTime] = useState('');
   const [selectedTimeRange, setSelectedTimeRange] = useState('all');
   // const uniqueDates = [...new Set(datos.map((dato) => dato.day))];
-  
+
+  const getIconPath = (iconName) => {
+    return require(`./icons/${iconName}.png`);
+  };
 
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}/datos_activity/`)
       .then((response) => response.json())
       .then((data) => {
-        data.sort((a, b) => {
+          data.sort((a, b) => {
           const dateA = new Date(a.day);
           const dateB = new Date(b.day);
           if (dateA < dateB) {
@@ -119,9 +131,11 @@ function DatosActivityList() {
     })
     .map((dato) => dato.day)
   )];
-
+  
+  
   return (
     <div>
+
       <Box sx={{ my: 2 }}>
         <Typography
           variant="h4"
@@ -175,8 +189,12 @@ function DatosActivityList() {
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
               <Paper elevation={3} sx={{ p: 2, margin: "10px" }}>
-                <Typography variant="h5" gutterBottom sx={{textTransform: "capitalize"}} >
-                {formatDate(dato.day)} ({dato.day})
+                <Typography
+                  variant="h5"
+                  gutterBottom
+                  sx={{ textTransform: "capitalize" }}
+                >
+                  {formatDate(dato.day)} ({dato.day})
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                   Horario: {dato.start_time} - {dato.end_time}
@@ -184,30 +202,34 @@ function DatosActivityList() {
                 <Typography variant="body1" gutterBottom>
                   Lugares disponibles: {dato.capacity}
                 </Typography>
+                
                 {dato.temperatura_max &&
                   dato.temperatura_min &&
                   dato.condiciones && (
                     <>
                       <Typography variant="body1" gutterBottom>
-                        Temperatura máxima: {dato.temperatura_max} °C
+                      {dato.condiciones} {<img src={getIconPath(dato.icon)} alt={dato.icon} style={{ width: '50px', height: '50px' }} />} - Min {dato.temperatura_min}°C - Max {dato.temperatura_max}°C 
+
                       </Typography>
                       <Typography variant="body1" gutterBottom>
-                        Temperatura mínima: {dato.temperatura_min} °C
                       </Typography>
-                      <Typography variant="body1" gutterBottom>
-                        Condiciones: {dato.condiciones}
-                      </Typography>
+                      {console.log(dato.icon)}
                     </>
                   )}
-                  <ReservarButton id_act={id} id_datos_activity={dato.id}></ReservarButton>
+                  
 
+
+                <ReservarButton
+                  id_act={id}
+                  id_datos_activity={dato.id}
+                ></ReservarButton>
               </Paper>
             </Grid>
           ))
         ) : (
           <Box mt={2}>
             <Typography variant="body1" align="center">
-            No se encontraron actividades.
+              No se encontraron actividades.
             </Typography>
           </Box>
         )}

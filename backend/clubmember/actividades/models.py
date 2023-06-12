@@ -25,6 +25,7 @@ class DatosActivity(models.Model):
     temperatura_max = models.CharField(max_length=50, null=True, blank=True)
     temperatura_min = models.CharField(max_length=50, null = True, blank=True)
     condiciones = models.CharField(max_length=255, null=True, blank=True)
+    icon = models.CharField(max_length=8, null=True, blank=True)
 
     class Meta:
         unique_together = ('id_act', 'day', 'start_time', 'end_time')
