@@ -91,9 +91,19 @@ return (
     <Card className="card card-body card-highlight" elevation={24}>
       <Grid container alignItems="center">
         <Grid item xs={8}>
-          <Typography variant="h4" component="h4" className="card-title">
-            {activity.name}
-          </Typography>
+        <Typography
+              variant="h5"
+              component="h5"
+              className="card-title"
+              style={{
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                fontFamily: 'Montserrat, sans-serif',
+              }}
+            >
+              {activity.name}
+            </Typography>
+          
           <Typography variant="h2">{activity.aire_libre}</Typography>
         </Grid>
         <Grid item xs={4}>
