@@ -101,6 +101,8 @@ import { Button, Grid, TextField, Alert, Box } from "@mui/material";
 import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import Logo from "./Logo/Logo3.png"
+
 
 
 const Register = () => {
@@ -160,6 +162,8 @@ const Register = () => {
       spacing={2}
       mt={3}
     >
+      <img src={Logo} alt="Lock" width="200" height="100" />
+
       <Grid item>
         <TextField
           value={nombreUsuario}

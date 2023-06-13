@@ -255,7 +255,6 @@ function DatosActivityList() {
                       <Typography variant="body1" gutterBottom></Typography>
                     </>
                   )}
-                <br></br>
                 <ReservarButton
                   id_act={id}
                   id_datos_activity={dato.id}

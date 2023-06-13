@@ -1,6 +1,5 @@
 
 import * as React from "react";
-import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
@@ -9,14 +8,13 @@ import Checkbox from "@mui/material/Checkbox";
 import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { Alert} from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import Logo from "./Logo/Logo3.png"
 
 const theme = createTheme();
 
@@ -67,20 +65,22 @@ export default function Login() {
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
-        <Box
+        <Box        
           sx={{
             marginTop: 8,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "success.main" }}>
+          {/* <Avatar sx={{ m: 1, bgcolor: "success.main" }}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
             Sign in
-          </Typography>
+          </Typography> */}
+          <img src={Logo} alt="Lock" width="200" height="100" />
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -102,7 +102,7 @@ export default function Login() {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Contraseña"
               type="password"
               id="password"
               color="info"
@@ -110,7 +110,7 @@ export default function Login() {
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="secondary" />}
-              label="Remember me"
+              label="Recordarme"
             />
             <Button
               type="submit"
@@ -119,12 +119,12 @@ export default function Login() {
               sx={{ mt: 3, mb: 2 }}
               color="success"
             >
-              Sign In
+              Iniciar Sesion
             </Button>
             <Grid container>
               <Grid item xs>
                 <Link href="http://localhost:8000/api/accounts/password_reset/" variant="body2" style={{ color: 'white' }}>
-                  Forgot password?
+                  Olvidó la contraseña?
                 </Link>
               </Grid>
               <Grid item>
