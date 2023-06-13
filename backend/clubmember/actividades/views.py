@@ -29,6 +29,8 @@ from django.core.mail import EmailMessage
 import tempfile
 from icalendar import Calendar, Event
 import os
+import qrcode
+from io import BytesIO
 
 # Create your views here.
 
@@ -297,6 +299,23 @@ class ReservaView(viewsets.ViewSet):
                 # Cambia el nombre del archivo temporal
                 new_filename = f'{mail_actividad_nombre}_.ics'
                 os.rename(filename, new_filename)
+                # Genera el código QR
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=4,
+                )
+                qr.add_data(f'Ingreso a la actividad {mail_actividad_nombre}')  # Puedes agregar cualquier texto o URL aquí
+                qr.make(fit=True)
+
+                # Genera la imagen del código QR en memoria
+                qr_image = qr.make_image()
+
+                # Crea un buffer de BytesIO para almacenar la imagen en memoria
+                buffer = BytesIO()
+                qr_image.save(buffer, format='PNG')
+                buffer.seek(0)
 
                 
 
@@ -305,9 +324,12 @@ class ReservaView(viewsets.ViewSet):
                 message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
                 message += f'Fecha: {mail_dia}\n'
                 message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+                message += f'Se adjunta el código QR para el ingreso al establecimiento'
+
 
                 email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
                 email.attach_file(new_filename)
+                email.attach(f'{mail_actividad_nombre}.png', buffer.getvalue(), 'image/png')
                 email.send()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)

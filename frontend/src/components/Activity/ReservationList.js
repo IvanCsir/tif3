@@ -19,7 +19,7 @@ function ReservaList() {
       .catch(error => {
         console.log(error);
       });
-  },);
+  },[]);
 
   const currentDate = new Date().setUTCHours(0, 0, 0, 0);
   // Ordena las reservas por fecha en orden ascendente
