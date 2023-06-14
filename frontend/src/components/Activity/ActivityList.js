@@ -60,11 +60,7 @@ const ActivityList = () => {
             {renderIcons()}
           </Typography>
         </Box>
-        {activities.length === 0 ? (
-          <Typography variant="body1" align="center">
-            No hay actividades disponibles.
-          </Typography>
-        ) : (
+        {activities && activities.length > 0 ? (
           activities.map((activity) => (
             <ActivityItem
               key={activity.id}
@@ -72,6 +68,10 @@ const ActivityList = () => {
               listactivities={listactivities}
             />
           ))
+        ) : (
+          <Typography variant="body1" align="center">
+            No hay actividades disponibles.
+          </Typography>
         )}
       </div>
     );
