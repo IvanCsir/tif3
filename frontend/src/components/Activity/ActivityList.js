@@ -72,6 +72,7 @@ const ActivityList = () => {
           <Typography variant="body1" align="center">
             No hay actividades disponibles.
           </Typography>
+          
         )}
       </div>
     );
