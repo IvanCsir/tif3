@@ -57,17 +57,22 @@ const ActivityList = () => {
             align="center"
           >
             actividades
-
-          {renderIcons()}
+            {renderIcons()}
           </Typography>
         </Box>
-        {activities.map((activity) => (
-          <ActivityItem
-            key={activity.id}
-            activity={activity}
-            listactivities={listactivities}
-          />
-        ))}
+        {activities.length === 0 ? (
+          <Typography variant="body1" align="center">
+            No hay actividades disponibles.
+          </Typography>
+        ) : (
+          activities.map((activity) => (
+            <ActivityItem
+              key={activity.id}
+              activity={activity}
+              listactivities={listactivities}
+            />
+          ))
+        )}
       </div>
     );
 };
