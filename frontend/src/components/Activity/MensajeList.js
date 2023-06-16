@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Typography, List, ListItem, ListItemText, IconButton, Popover, Badge, Grid } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, IconButton, Popover, Badge } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 
@@ -104,7 +104,7 @@ const MensajeList = () => {
       >
         <div style={{ padding: "16px" }}>
           <Typography variant="h7" gutterBottom>
-            Mensajes
+            Notificaciones
           </Typography>
           <List>
             {mensajes.map((mensaje) => {
