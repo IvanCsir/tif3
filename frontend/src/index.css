@@ -39,13 +39,13 @@ body {
   color: #888888;
 }
 
-.MensajeContenido {
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Define la cantidad máxima de líneas a mostrar */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.message-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
 }
-
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

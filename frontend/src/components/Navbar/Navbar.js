@@ -267,17 +267,29 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { grey } from '@mui/material/colors';
 import { Link, useNavigate } from 'react-router-dom';
 import MensajeList from '../Activity/MensajeList'; // Importa el componente MensajeList
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [anchorElNotif, setAnchorElNotif] = useState(null); // Nuevo estado para el menú de notificaciones
   const navigate = useNavigate();
+
+  const tipoUsuario = localStorage.getItem('tipo_usuario');
+  const renderIcons = () => {
+    if (tipoUsuario === '1') {
+      return (
+        <React.Fragment>
+            <Typography style={{ fontSize: '14px' }}>Enviar mensaje</Typography>
+        </React.Fragment>
+      );
+    }
+    return null;
+  };
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -321,7 +333,8 @@ const Navbar = () => {
     <AppBar position="static" sx={{ bgcolor: 'black' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          {/* <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
+          <EmojiEventsIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}></EmojiEventsIcon>
           <Typography
             variant="h6"
             noWrap
@@ -373,7 +386,9 @@ const Navbar = () => {
                 <MenuItem key={page} onClick={handleCloseNavMenu}>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
+
               ))}
+              
             </Menu>
           </Box>
 
@@ -409,7 +424,13 @@ const Navbar = () => {
               </Button>
             ))}
           </Box>
+          <Box >
+            <Button sx={{ my: 2, color: 'white', display: 'block' }} to={"/mensaje/crear_mensaje/" } component={Link}>
+              {renderIcons()}
+            </Button>
+            
 
+          </Box>
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Notificaciones">
               {/* <IconButton

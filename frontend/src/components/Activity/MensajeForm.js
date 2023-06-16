@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Grid, Box, Typography, TextField, FormControlLabel, Checkbox, Button } from '@mui/material';
+import { Grid, Box, Typography, TextField, Button, Paper, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
 
 const MensajeForm = () => {
   const [titulo, setTitulo] = useState('');
   const [contenido, setContenido] = useState('');
 
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('error');
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const usuarioId = localStorage.getItem('usuario_id');
     const data = {
       titulo,
       contenido,
@@ -18,11 +21,18 @@ const MensajeForm = () => {
     axios.post(`http://localhost:8000/api/activities/mensaje/crear_mensaje/`, data)
       .then((response) => {
         console.log(response.data);
-        // Aquí puedes manejar la respuesta exitosa como desees
+        setAlertMessage('Mensaje enviado con éxito');
+        setAlertSeverity('success');
+        setAlertOpen(true);
+        setTimeout(() => {
+          window.location.reload(); // Refrescar la página después de 5 segundos
+        }, 3000); // Retardo de 5000 milisegundos (5 segundos)
       })
       .catch((error) => {
         console.error(error);
-        // Aquí puedes manejar los errores como desees
+        setAlertMessage('Error al enviar el mensaje');
+          setAlertSeverity('error');
+          setAlertOpen(true);
       });
   };
 
@@ -35,48 +45,76 @@ const MensajeForm = () => {
       spacing={2}
       mt={3}
     >
-      <Box my={2}>
-        <Typography
-          variant="h4"
-          sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}
-          align="center"
-        >
-          GENERAR MENSAJE
-        </Typography>
-      </Box>
-      <Grid item>
-        <TextField
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          name="titulo"
-          label="Título"
-          required
-          color="info"
-          autoFocus
-        />
-      </Grid>
-      <Grid item>
-        <TextField
-          value={contenido}
-          onChange={(e) => setContenido(e.target.value)}
-          name="contenido"
-          label="Contenido"
-          required
-          color="info"
-        />
-      </Grid>
-      <Grid item>
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-        >
-          Enviar Mensaje
-        </Button>
-      </Grid>
+      <Paper elevation={24} sx={{ p: 4 }}>
+        <Box my={2}>
+          <Typography
+            variant="h5"
+            sx={{ textTransform: "uppercase", fontWeight: "bold", mb: 2 }}
+            align="center"
+          >
+            GENERAR MENSAJE
+          </Typography>
+        </Box>
+        <Grid item container justifyContent="center">
+          <Grid item>
+            <TextField
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              name="titulo"
+              label="Título"
+              required
+              color="info"
+              autoFocus
+            />
+          </Grid>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <Grid item>
+            <Box mt={2}>
+              <TextField
+                value={contenido}
+                onChange={(e) => setContenido(e.target.value)}
+                name="contenido"
+                label="Contenido"
+                required
+                color="info"
+              />
+            </Box>
+          </Grid>
+        </Grid>
+        <Grid item container justifyContent="center">
+          <Grid item>
+            <Box mt={2} sx={{ textAlign: "center" }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+              >
+                Enviar Mensaje
+              </Button>
+            </Box>
+            <Box mt={2}>
+              {alertOpen && (
+                <Alert
+                  severity={alertSeverity}
+                  onClose={() => setAlertOpen(false)}
+                >
+                  {alertMessage}
+                </Alert>
+              )}
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
     </Grid>
   );
 };
 
 export default MensajeForm;
+
+// //Probando
+
+
+
+
