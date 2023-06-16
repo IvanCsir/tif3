@@ -5,3 +5,4 @@ from .models import *
 admin.site.register(Activity)
 admin.site.register(DatosActivity)
 admin.site.register(Reserva)
+admin.site.register(Mensaje)

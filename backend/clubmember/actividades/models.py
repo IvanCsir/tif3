@@ -40,3 +40,10 @@ class Reserva(models.Model):
 
     class Meta:
         unique_together = ('usuario', 'datos_activity')
+
+class Mensaje(models.Model):
+    usuario = models.ForeignKey(DatosUsuarios, on_delete=models.CASCADE, default=1)
+    titulo = models.CharField(max_length=100)
+    contenido = models.TextField()
+    leido = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)

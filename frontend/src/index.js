@@ -18,8 +18,10 @@ import './index.css';
 import DatosActivityList from './components/Activity/DatosActivityList';
 import ReservaList from './components/Activity/ReservationList';
 import Logout from './components/Users/Logout';
-
+import MensajeList from './components/Activity/MensajeList';
+import MensajeForm from './components/Activity/MensajeForm';
 // const root = ReactDOM.createRoot(document.getElementById('root'));
+
 document.title = 'Club Member';
 ReactDOM.render(
   <BrowserRouter>
@@ -36,6 +38,9 @@ ReactDOM.render(
         <Route path="/updateActivity/:id" Component={ActivityForm}/>
         <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>
         <Route path="/usuario/:id_user/reservas/" Component={ReservaList}/>    
+        <Route path="/mensaje/obtener_mensaje/" Component={MensajeList}/>
+        <Route path="/mensaje/crear_mensaje/" Component={MensajeForm}/>
+
 
 
       </Routes>

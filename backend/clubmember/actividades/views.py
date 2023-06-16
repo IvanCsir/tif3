@@ -5,12 +5,12 @@ from django.http.response import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from .models import Activity, DatosActivity, Reserva
+from .models import Activity, DatosActivity, Reserva, Mensaje
 from rest_framework.response import Response
 import json
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer, ReservaSerializer, TraerReservaSerializer
+from .serializers import DatosCreateActivitySeralizer, DatosActivitySerializer, ReservaSerializer, TraerReservaSerializer, MensajeSerializer
 from datetime import date, datetime
 from django.shortcuts import get_object_or_404
 import requests
@@ -31,6 +31,8 @@ from icalendar import Calendar, Event
 import os
 import qrcode
 from io import BytesIO
+from django.db.models import OuterRef, Subquery
+
 
 # Create your views here.
 
@@ -152,7 +154,6 @@ class DatosActivityView(viewsets.ViewSet):
 
 ## Este es para que no haga la llamada a la API si la actividad no es al aire libre:
     def obtener_datos_climaticos(self, datos_activity_list):
-
         city = "Mendoza"
         country = "Argentina"
         with transaction.atomic(): ## Si no se hacen todas las transacciones, se revierte la transaccion
@@ -242,7 +243,7 @@ class DatosActivityView(viewsets.ViewSet):
 class ReservaView(viewsets.ViewSet):
     @action(detail=True, methods=['post'])
     def reservar(self, request, id_act=None, id_datos_activity=None):
-        # print(request.user)
+        print(request.user)
         datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
         # actividad = get_object_or_404(Activity, id)
         serializer = ReservaSerializer(data=request.data, context={'request': request})
@@ -342,24 +343,7 @@ class ReservaView(viewsets.ViewSet):
         serializer = TraerReservaSerializer(reservas, many=True)
         return Response(serializer.data)
     
-# class EmailViewSet(viewsets.ViewSet):
-#     @action(detail=False, methods=['post'])
-#     def send_email(self, request):
-#         # Obtener los datos del cuerpo de la solicitud POST
-#         email = request.data.get('email')
-#         message = request.data.get('message')
 
-#         # Envío de correo electrónico
-#         send_mail(
-#             'Asunto del correo electrónico',
-#             message,
-#             'remite@example.com',  # Dirección de correo electrónico del remitente
-#             [email],  # Lista de direcciones de correo electrónico de destino
-#             fail_silently=False,
-#         )
-
-#         return Response({'success': True})
-    #         )
 
     # @action(detail=True, methods=['delete'], url_path='cancelar_reserva/(?P<id_datos_activity>\d+)')
     # def cancelar_reserva(self, request, id_act=None, id_datos_activity=None):
@@ -373,4 +357,50 @@ class ReservaView(viewsets.ViewSet):
     #         reserva.delete()
 
     #     return Response({'message': 'Reserva cancelada'}, status=status.HTTP_200_OK)
+
+
+class MensajeView(viewsets.ViewSet):
+
+    # @action(detail=False, methods=['post'])
+    # def crear_mensaje(self, request):
+    #     serializer = MensajeSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         mensaje = serializer.save()
+    #         usuarios = DatosUsuarios.objects.all()
+    #         for usuario in usuarios:
+    #             Mensaje.objects.create(usuario=usuario, titulo=mensaje.titulo, contenido=mensaje.contenido)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def crear_mensaje(self, request):
+        serializer = MensajeSerializer(data=request.data)
+        if serializer.is_valid():
+            mensaje = serializer.save()
+            usuarios = DatosUsuarios.objects.all()
+            for usuario in usuarios:
+                if usuario.id != 1:  # Omitir creación adicional de mensajes para el usuario 1
+                    Mensaje.objects.create(usuario=usuario, titulo=mensaje.titulo, contenido=mensaje.contenido)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=True, methods=['get'])
+    def obtener_mensajes(self, request, usuario_id=None):
+        mensajes = Mensaje.objects.filter(usuario_id=usuario_id)
+        serializer = MensajeSerializer(mensajes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+    @action(detail=True, methods=['put'])
+    def marcar_leidos(self, request, usuario_id =None):
+        try:
+            mensajes = Mensaje.objects.filter(usuario_id=usuario_id)
+            mensajes.update(leido=True)
+            return Response(status=status.HTTP_200_OK)
+        except Mensaje.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
 

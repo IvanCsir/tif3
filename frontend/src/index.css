@@ -18,6 +18,34 @@ body {
   box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.738);
 }
 
+.list-item-bold {
+  font-weight: bold;
+}
+
+.list-item-hover {
+  background-color: #efefef;
+}
+
+.nuevo-mensaje-notification {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: #e8e8e8;
+  margin-bottom: 8px;
+}
+
+.limpiar-nuevo-mensaje-button {
+  margin-left: 8px;
+  color: #888888;
+}
+
+.MensajeContenido {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Define la cantidad máxima de líneas a mostrar */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DatosActivity, Reserva, DatosUsuarios
+from .models import DatosActivity, Reserva, DatosUsuarios, Mensaje
 from .choices import horarios
 from django.contrib.auth.models import User
 
@@ -58,3 +58,8 @@ class TraerReservaSerializer(serializers.ModelSerializer):
             return "AIRE LIBRE"
         else:
             return "TECHADO"
+
+class MensajeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mensaje
+        fields = '__all__'
