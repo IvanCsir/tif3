@@ -284,7 +284,7 @@ class ReservaView(viewsets.ViewSet):
 
             # Define las propiedades del Evento
             event.add('summary', f'Reserva para {mail_actividad_nombre} {mensaje_lugar}')
-            event.add('location', 'Ubicación del evento')
+            event.add('location', 'Mendoza')
             event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
             event.add('dtend', datetime.combine(mail_dia, mail_end_time))
 
@@ -300,23 +300,25 @@ class ReservaView(viewsets.ViewSet):
                 # Cambia el nombre del archivo temporal
                 new_filename = f'{mail_actividad_nombre}_.ics'
                 os.rename(filename, new_filename)
-                # Genera el código QR
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=4,
-                )
-                qr.add_data(f'Ingreso a la actividad {mail_actividad_nombre}')  # Puedes agregar cualquier texto o URL aquí
-                qr.make(fit=True)
 
-                # Genera la imagen del código QR en memoria
-                qr_image = qr.make_image()
+                #Código para generar el QR
+                # # Genera el código QR
+                # qr = qrcode.QRCode(
+                #     version=1,
+                #     error_correction=qrcode.constants.ERROR_CORRECT_L,
+                #     box_size=10,
+                #     border=4,
+                # )
+                # qr.add_data(f'Ingreso a la actividad {mail_actividad_nombre}')  # Puedes agregar cualquier texto o URL aquí
+                # qr.make(fit=True)
 
-                # Crea un buffer de BytesIO para almacenar la imagen en memoria
-                buffer = BytesIO()
-                qr_image.save(buffer, format='PNG')
-                buffer.seek(0)
+                # # Genera la imagen del código QR en memoria
+                # qr_image = qr.make_image()
+
+                # # Crea un buffer de BytesIO para almacenar la imagen en memoria
+                # buffer = BytesIO()
+                # qr_image.save(buffer, format='PNG')
+                # buffer.seek(0)
 
                 
 
@@ -325,12 +327,12 @@ class ReservaView(viewsets.ViewSet):
                 message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
                 message += f'Fecha: {mail_dia}\n'
                 message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-                message += f'Se adjunta el código QR para el ingreso al establecimiento'
+                message += f'Puede agregar el evento a su calendario si así lo desea'
 
 
                 email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
                 email.attach_file(new_filename)
-                email.attach(f'{mail_actividad_nombre}.png', buffer.getvalue(), 'image/png')
+                # email.attach(f'{mail_actividad_nombre}.png', buffer.getvalue(), 'image/png')
                 email.send()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -360,18 +362,6 @@ class ReservaView(viewsets.ViewSet):
 
 
 class MensajeView(viewsets.ViewSet):
-
-    # @action(detail=False, methods=['post'])
-    # def crear_mensaje(self, request):
-    #     serializer = MensajeSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         mensaje = serializer.save()
-    #         usuarios = DatosUsuarios.objects.all()
-    #         for usuario in usuarios:
-    #             Mensaje.objects.create(usuario=usuario, titulo=mensaje.titulo, contenido=mensaje.contenido)
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     @action(detail=False, methods=['post'])
     def crear_mensaje(self, request):
         serializer = MensajeSerializer(data=request.data)
@@ -384,14 +374,11 @@ class MensajeView(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=True, methods=['get'])
     def obtener_mensajes(self, request, usuario_id=None):
         mensajes = Mensaje.objects.filter(usuario_id=usuario_id)
         serializer = MensajeSerializer(mensajes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 
     @action(detail=True, methods=['put'])
     def marcar_leidos(self, request, usuario_id =None):

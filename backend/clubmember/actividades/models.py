@@ -47,3 +47,4 @@ class Mensaje(models.Model):
     contenido = models.TextField()
     leido = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
