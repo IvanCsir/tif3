@@ -252,7 +252,7 @@ function DatosActivityForm(props) {
         <TextField
           value={recurrence}
           onChange={(e) => setRecurrence(Number(e.target.value))}
-          label="Recurrencia"
+          label="Clases"
           required
           color="primary"
           type="number"

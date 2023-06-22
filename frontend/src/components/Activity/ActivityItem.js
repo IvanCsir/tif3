@@ -92,8 +92,8 @@ return (
       <Grid container alignItems="center">
         <Grid item xs={8}>
         <Typography
-              variant="h5"
-              component="h5"
+              variant="h6"
+              component="h6"
               className="card-title"
               style={{
                 fontWeight: 'bold',

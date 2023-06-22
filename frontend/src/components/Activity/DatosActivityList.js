@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar} from "@mui/material";
 import ReservarButton from "./Reservation"
 import { green } from '@mui/material/colors';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 
@@ -23,12 +24,14 @@ function DatosActivityList() {
   const [selectedEndTime, setSelectedEndTime] = useState('');
   const [selectedTimeRange, setSelectedTimeRange] = useState('all');
   // const uniqueDates = [...new Set(datos.map((dato) => dato.day))];
+  const [isLoading, setIsLoading] = useState(true);
 
   const getIconPath = (iconName) => {
     return require(`./icons/${iconName}.png`);
   };
 
   useEffect(() => {
+    setIsLoading(true); // Establecer isLoading en true antes de la solicitud
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}/datos_activity/`)
       .then((response) => response.json())
       .then((data) => {
@@ -58,6 +61,7 @@ function DatosActivityList() {
         }));
   
         setDatos(dataWithInitialCapacity);
+        setIsLoading(false);
       });
     fetch(`http://127.0.0.1:8000/api/activities/activity/${id}`)
       .then((response) => response.json())
@@ -138,8 +142,18 @@ function DatosActivityList() {
     .map((dato) => dato.day)
   )];
   
+  const Spinner = () => {
+      return (
+        <React.Fragment>
+            <Box mt={5}>
+              <CircularProgress></CircularProgress>
+            </Box>
+        </React.Fragment>
+      );
+    };
+
   return (
-    <div>
+    <div style={{ cursor: isLoading ? 'wait' : 'auto' }}>
       <Box sx={{ my: 2 }}>
         <Typography
           variant="h4"
@@ -189,7 +203,10 @@ function DatosActivityList() {
         </Grid>
       </Box>
       <Grid container justifyContent="center" alignItems="center" spacing={2}>
-        {filteredDatos.length > 0 ? (
+        {/* {filteredDatos.length > 0 ? ( */}
+        {isLoading ? ( // Mostrar indicador de carga si isLoading es true
+          Spinner()
+        ) : filteredDatos.length > 0 ? (
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
               <Paper className="card card-body card-secondary" elevation={24} sx={{ p: 2, margin: "5px" }}>
@@ -265,7 +282,7 @@ function DatosActivityList() {
         ) : (
           <Box mt={2}>
             <Typography variant="body1" align="center">
-              No se encontraron actividades.
+              No hay disponibilidad para esta actividad 
             </Typography>
           </Box>
         )}
