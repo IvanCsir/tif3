@@ -33,7 +33,6 @@ import qrcode
 from io import BytesIO
 from django.db.models import OuterRef, Subquery
 
-
 # Create your views here.
 
 class ActivityView(View):
@@ -109,13 +108,15 @@ class DatosActivityView(viewsets.ViewSet):
 
     def obtener_pronostico(self,day, city, country):
         url = "https://api.weatherbit.io/v2.0/forecast/daily"
+        # key = os.getenv('WEATHER_API_KEY')
+        # print(key)
+        key="96b070579ce942a38168beec2bef6ca1"
         params = {
         "city": city,
         "country": country,
-        "key": "b6925167beb74b49b788c2684550df25",
+        "key": key,
         "lang": "es",
     }
-
         response = requests.get(url, params=params)
         if response.status_code == 200:
             datos_clima = response.json()
