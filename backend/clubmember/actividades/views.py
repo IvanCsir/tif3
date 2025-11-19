@@ -108,9 +108,9 @@ class DatosActivityView(viewsets.ViewSet):
 
     def obtener_pronostico(self,day, city, country):
         url = "https://api.weatherbit.io/v2.0/forecast/daily"
-        # key = os.getenv('WEATHER_API_KEY')
+        key = os.getenv('WEATHER_API_KEY')
         # print(key)
-        key="96b070579ce942a38168beec2bef6ca1"
+        # key="96b070579ce942a38168beec2bef6ca1"
         params = {
         "city": city,
         "country": country,
