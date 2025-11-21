@@ -29,17 +29,17 @@ ReactDOM.render(
     <div className="container my-4">
       <Routes>
         <Route exact path="/" element={<Login />}/>
-        {/* <Route path="/login" Component={Login}/> */}
+        {/* <Route path="/login" element={<Login/>}/> */}
         <Route path="/register" element={<Register />} />
         <Route path="/logout" element={<Logout/>}/>
-        <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
-        <Route path="/actividades" Component={ActivityList}/>
-        <Route path="/activityForm" Component={ActivityForm}/>
-        <Route path="/updateActivity/:id" Component={ActivityForm}/>
-        <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>
-        <Route path="/usuario/:id_user/reservas/" Component={ReservaList}/>    
-        <Route path="/mensaje/obtener_mensaje/" Component={MensajeList}/>
-        <Route path="/mensaje/crear_mensaje/" Component={MensajeForm}/>
+        <Route path="/activity/:id/datos" element={<DatosActivityForm/>}/>
+        <Route path="/actividades" element={<ActivityList/>}/>
+        <Route path="/activityForm" element={<ActivityForm/>}/>
+        <Route path="/updateActivity/:id" element={<ActivityForm/>}/>
+        <Route path="/activity/lugares_disponibles/:id/" element={<DatosActivityList/>}/>
+        <Route path="/usuario/:id_user/reservas/" element={<ReservaList/>}/>    
+        <Route path="/mensaje/obtener_mensaje/" element={<MensajeList/>}/>
+        <Route path="/mensaje/crear_mensaje/" element={<MensajeForm/>}/>
 
 
 

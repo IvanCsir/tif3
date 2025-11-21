@@ -50,7 +50,7 @@ export default function Login() {
             navigate('/activityForm');
             window.location.reload(); 
           } else {
-            navigate('actividades')
+            navigate('/actividades')
             window.location.reload();
           }
         }
