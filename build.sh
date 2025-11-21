@@ -13,3 +13,8 @@ python manage.py collectstatic --no-input
 
 # Ejecutar migraciones
 python manage.py migrate
+
+# Crear superusuario automáticamente
+echo "=== Ejecutando comando de creación de superusuario ==="
+python manage.py create_admin_user
+echo "=== Comando de superusuario completado ==="
