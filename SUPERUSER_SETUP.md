@@ -38,11 +38,12 @@ Si no se especifican las variables de entorno, se usarán los siguientes valores
 
 ### Cómo Funciona
 
-El script `build.sh` ejecuta automáticamente el comando `python manage.py createsuperuser` después de las migraciones. Este comando:
+El script `build.sh` ejecuta automáticamente el comando `python manage.py create_admin_user` después de las migraciones. Este comando:
 
 1. Verifica si ya existe un superusuario
 2. Si no existe, crea uno nuevo con las credenciales proporcionadas
 3. Si ya existe, muestra un mensaje y no hace cambios
+4. Proporciona logs detallados para debugging
 
 ### Acceso al Admin
 
@@ -60,5 +61,5 @@ Para probar el comando localmente, puedes ejecutar:
 
 ```bash
 cd backend/clubmember
-python manage.py createsuperuser
+python manage.py create_admin_user
 ```
