@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams} from "react-router-dom";
 import { Button, Grid, TextField, Alert, FormControlLabel, Checkbox,Box} from "@mui/material";
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 
 
@@ -177,7 +178,7 @@ function DatosActivityForm(props) {
     let currentDate = new Date(day); // Convertir la fecha en formato "YYYY-MM-DD" a un objeto Date
     for (let i = 0; i < recurrence; i++) {
       requests.push(
-        axios.post(`http://127.0.0.1:8000/api/activities/activity/${id}/datos/`, data, {
+        axios.post(`${API_BASE_URL}/api/activities/activity/${id}/datos/`, data, {
           headers: {
             'Content-Type': 'application/json',
           },

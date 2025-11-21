@@ -1,6 +1,7 @@
 // Este es el original sin pasarlo por chat GPT
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import API_BASE_URL from '../../config/api';
 import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar} from "@mui/material";
 import ReservarButton from "./Reservation"
 import { green } from '@mui/material/colors';
@@ -32,7 +33,7 @@ function DatosActivityList() {
 
   useEffect(() => {
     setIsLoading(true); // Establecer isLoading en true antes de la solicitud
-    fetch(`http://127.0.0.1:8000/api/activities/activity/${id}/datos_activity/`)
+    fetch(`${API_BASE_URL}/api/activities/activity/${id}/datos_activity/`)
       .then((response) => response.json())
       .then((data) => {
           data.sort((a, b) => {
@@ -63,7 +64,7 @@ function DatosActivityList() {
         setDatos(dataWithInitialCapacity);
         setIsLoading(false);
       });
-    fetch(`http://127.0.0.1:8000/api/activities/activity/${id}`)
+    fetch(`${API_BASE_URL}/api/activities/activity/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setNombreActividad(data.actividad.name);

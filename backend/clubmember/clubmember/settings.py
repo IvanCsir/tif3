@@ -79,7 +79,7 @@ SESSION_COOKIE_SECURE = not DEBUG  # True en producción con HTTPS
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-    'https://tif3-frontend.onrender.com'
+    'https://tif3-frontend.onrender.com',  # Tu dominio del frontend en Render
     # Agrega aquí los dominios permitidos
 ]
 

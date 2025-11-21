@@ -1,11 +1,12 @@
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 
 // ...
 
 // Controlador de eventos para el botón o enlace de "Logout"
 export default function Logout () {
-  axios.post('http://localhost:8000/api/authentication/logout/')
+  axios.post(`${API_BASE_URL}/api/authentication/logout/`)
     .then(response => {
       // Manejo de la respuesta exitosa
       

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from '../../config/api';
 import {
   Typography,
   Paper,
@@ -12,7 +13,7 @@ function ReservaList() {
   const id_usuario = parseInt(localStorage.getItem('usuario_id'));
 
   useEffect(() => {
-    axios.get(`http://127.0.0.1:8000/api/activities/activity/${id_usuario}/reservas/`)
+    axios.get(`${API_BASE_URL}/api/activities/activity/${id_usuario}/reservas/`)
       .then(response => {
         setReservas(response.data);
       })

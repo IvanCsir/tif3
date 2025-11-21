@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Grid, Box, Typography, TextField, Button, Paper, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 const MensajeForm = () => {
   const [titulo, setTitulo] = useState('');
@@ -18,7 +19,7 @@ const MensajeForm = () => {
       contenido,
     };
 
-    axios.post(`http://localhost:8000/api/activities/mensaje/crear_mensaje/`, data)
+    axios.post(`${API_BASE_URL}/api/activities/mensaje/crear_mensaje/`, data)
       .then((response) => {
         console.log(response.data);
         setAlertMessage('Mensaje enviado con éxito');
