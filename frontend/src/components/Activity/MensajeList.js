@@ -25,7 +25,7 @@ const MensajeList = () => {
 
   const obtenerMensajes = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/activities/mensaje/${id_usuario}/obtener_mensajes/`);
+      const response = await axios.get(`${API_BASE_URL}/api/activities/mensaje/${id_usuario}/obtener_mensajes/`);
       const mensajesOrdenados = response.data.sort((a, b) => new Date(b.fecha_creacion) - new Date(a.fecha_creacion));
       const mensajesLimitados = mensajesOrdenados.slice(0, 4);
       setMensajes(mensajesLimitados);
@@ -58,7 +58,7 @@ const MensajeList = () => {
   const handleMensajeMouseEnter = async (mensaje) => {
     if (!mensaje.leido) {
       try {
-        await axios.put(`http://localhost:8000/api/activities/mensaje/${id_usuario}/marcar_leidos/`);
+        await axios.put(`${API_BASE_URL}/api/activities/mensaje/${id_usuario}/marcar_leidos/`);
         const mensajesActualizados = mensajes.map((m) => {
           if (m.id === mensaje.id) {
             return { ...m, leido: true };

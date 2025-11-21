@@ -12,6 +12,7 @@ import Container from "@mui/material/Container";
 import { Alert} from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
+import API_BASE_URL from '../../config/api';
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import Logo from "./Logo/Logo3.png"
@@ -31,7 +32,7 @@ export default function Login() {
 
     axios
       .post(
-        "http://localhost:8000/api/authentication/login/",
+        `${API_BASE_URL}/api/authentication/login/`,
         {
           username: data.get("usuario"),
           password: data.get("password"),
@@ -123,7 +124,7 @@ export default function Login() {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="http://localhost:8000/api/accounts/password_reset/" variant="body2" style={{ color: 'white' }}>
+                <Link href={`${API_BASE_URL}/api/accounts/password_reset/`} variant="body2" style={{ color: 'white' }}>
                   Olvidó la contraseña?
                 </Link>
               </Grid>

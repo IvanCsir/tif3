@@ -18,7 +18,7 @@ const MensajeForm = () => {
       contenido,
     };
 
-    axios.post(`http://localhost:8000/api/activities/mensaje/crear_mensaje/`, data)
+    axios.post(`${API_BASE_URL}/api/activities/mensaje/crear_mensaje/`, data)
       .then((response) => {
         console.log(response.data);
         setAlertMessage('Mensaje enviado con éxito');

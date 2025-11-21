@@ -17,7 +17,7 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
         usuario: usuarioId,
         };
 
-        axios.post(`http://127.0.0.1:8000/api/activities/activity/${id_act}/reservar/${id_datos_activity}/`, data)
+        axios.post(`${API_BASE_URL}/api/activities/activity/${id_act}/reservar/${id_datos_activity}/`, data)
         .then(response => {
             // Manejar la respuesta exitosa
             setAlertMessage('Reserva realizada con éxito');

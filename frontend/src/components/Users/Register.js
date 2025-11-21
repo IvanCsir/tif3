@@ -131,7 +131,7 @@ const Register = () => {
       };
       console.log(body)
       axios
-        .post("http://localhost:8000/api/authentication/register/", body, {
+        .post(`${API_BASE_URL}/api/authentication/register/`, body, {
           headers: { "Content-Type": "application/json" },
         })
         .then((response) => {
