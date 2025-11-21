@@ -322,10 +322,6 @@ const Navbar = () => {
 
   const isAuthenticated = !!localStorage.getItem('usuario_id');
 
-  if (!isAuthenticated) {
-    return null; // No renderizar la barra de navegación si no hay usuario autenticado
-  }
-
   const pages = ['Actividades', 'Mis Reservas'];
   const settings = [];
 

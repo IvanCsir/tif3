@@ -46,13 +46,14 @@ export default function Login() {
           localStorage.setItem('tipo_usuario', response.data.tipo)
           const tipoUsuario = localStorage.getItem('tipo_usuario');
 
-          if (tipoUsuario === "1") {
-            navigate('/activityForm');
-            window.location.reload(); 
-          } else {
-            navigate('/actividades')
-            window.location.reload();
-          }
+          // Pequeña pausa para asegurar que localStorage se sincronice
+          setTimeout(() => {
+            if (tipoUsuario === "1") {
+              navigate('/activityForm');
+            } else {
+              navigate('/actividades');
+            }
+          }, 100);
         }
       })
       .catch(function (error) {

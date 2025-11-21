@@ -13,14 +13,33 @@ const ActivityList = () => {
     const navigate = useNavigate()    
     const [activities, setActivities] = useState([])
     const tipoUsuario = localStorage.getItem('tipo_usuario');
+    const usuarioId = localStorage.getItem('usuario_id');
+
+    // Verificar autenticación
+    useEffect(() => {
+        if (!usuarioId) {
+            navigate('/');
+            return;
+        }
+    }, [usuarioId, navigate]);
 
     const listactivities = async () =>{
         try{
             const res = await activityserver.listActivities()
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
             const data = await res.json()
-            setActivities(data.actividades)
+            if (data.actividades) {
+                setActivities(data.actividades)
+            }
         }catch(error){
-            console.log(error)
+            console.error('Error loading activities:', error)
+            // Si hay error de autenticación, redirigir al login
+            if (error.message.includes('401')) {
+                localStorage.clear();
+                navigate('/');
+            }
         }   
     };
 
@@ -29,7 +48,7 @@ const ActivityList = () => {
     }, []);
 
     const handleAddActivity = () => {
-      navigate("/activityform");
+      navigate("/activityForm");
     };
 
     const renderIcons = () => {

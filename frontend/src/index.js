@@ -25,21 +25,20 @@ import MensajeForm from './components/Activity/MensajeForm';
 document.title = 'Club Member';
 ReactDOM.render(
   <BrowserRouter>
-  <Navbar></Navbar>
     <div className="container my-4">
       <Routes>
         <Route exact path="/" element={<Login />}/>
         {/* <Route path="/login" element={<Login/>}/> */}
         <Route path="/register" element={<Register />} />
         <Route path="/logout" element={<Logout/>}/>
-        <Route path="/activity/:id/datos" element={<DatosActivityForm/>}/>
-        <Route path="/actividades" element={<ActivityList/>}/>
-        <Route path="/activityForm" element={<ActivityForm/>}/>
-        <Route path="/updateActivity/:id" element={<ActivityForm/>}/>
-        <Route path="/activity/lugares_disponibles/:id/" element={<DatosActivityList/>}/>
-        <Route path="/usuario/:id_user/reservas/" element={<ReservaList/>}/>    
-        <Route path="/mensaje/obtener_mensaje/" element={<MensajeList/>}/>
-        <Route path="/mensaje/crear_mensaje/" element={<MensajeForm/>}/>
+        <Route path="/activity/:id/datos" element={<><Navbar/><DatosActivityForm/></>}/>
+        <Route path="/actividades" element={<><Navbar/><ActivityList/></>}/>
+        <Route path="/activityForm" element={<><Navbar/><ActivityForm/></>}/>
+        <Route path="/updateActivity/:id" element={<><Navbar/><ActivityForm/></>}/>
+        <Route path="/activity/lugares_disponibles/:id/" element={<><Navbar/><DatosActivityList/></>}/>
+        <Route path="/usuario/:id_user/reservas/" element={<><Navbar/><ReservaList/></>}/>    
+        <Route path="/mensaje/obtener_mensaje/" element={<><Navbar/><MensajeList/></>}/>
+        <Route path="/mensaje/crear_mensaje/" element={<><Navbar/><MensajeForm/></>}/>
 
 
 
