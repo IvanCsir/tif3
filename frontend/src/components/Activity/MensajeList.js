@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 import { Typography, List, ListItem, ListItemText, IconButton, Popover, Badge } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 

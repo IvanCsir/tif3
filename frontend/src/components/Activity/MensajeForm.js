@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Grid, Box, Typography, TextField, Button, Paper, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
+import API_BASE_URL from '../../config/api';
 
 const MensajeForm = () => {
   const [titulo, setTitulo] = useState('');
