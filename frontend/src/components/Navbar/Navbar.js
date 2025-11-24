@@ -269,7 +269,7 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { grey } from '@mui/material/colors';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MensajeList from '../Activity/MensajeList'; // Importa el componente MensajeList
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
@@ -278,6 +278,7 @@ const Navbar = () => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [anchorElNotif, setAnchorElNotif] = useState(null); // Nuevo estado para el menú de notificaciones
   const navigate = useNavigate();
+  const location = useLocation();
 
   const tipoUsuario = localStorage.getItem('tipo_usuario');
   const renderIcons = () => {
@@ -322,8 +323,10 @@ const Navbar = () => {
 
   const isAuthenticated = !!localStorage.getItem('usuario_id');
 
-  if (!isAuthenticated) {
-    return null; // No renderizar la barra de navegación si no hay usuario autenticado
+  // No mostrar la navbar en rutas públicas como login, register y logout
+  const publicRoutes = ['/', '/register', '/logout'];
+  if (publicRoutes.includes(location.pathname) || !isAuthenticated) {
+    return null;
   }
 
   const pages = ['Actividades', 'Mis Reservas'];
@@ -464,7 +467,7 @@ const Navbar = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
+            <Tooltip title={`${localStorage.getItem('usuario_nombre')} ${localStorage.getItem('usuario_apellido')}`}>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <AccountCircleIcon sx={{ color: grey[500], fontSize: 40 }} />
               </IconButton>
@@ -485,6 +488,11 @@ const Navbar = () => {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
+              <Box sx={{ px: 2, py: 1, borderBottom: '1px solid #e0e0e0' }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {localStorage.getItem('usuario_nombre')} {localStorage.getItem('usuario_apellido')}
+                </Typography>
+              </Box>
               {settings.map((setting, index) => (
                 <MenuItem key={index} onClick={handleCloseUserMenu}>
                   <Typography textAlign="center">{setting}</Typography>

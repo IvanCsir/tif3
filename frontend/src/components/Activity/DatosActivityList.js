@@ -119,7 +119,7 @@ function DatosActivityList() {
       setSelectedEndTime('19:00');
     } else if (selectedValue === 'evening') {
       setSelectedStartTime('19:00');
-      setSelectedEndTime('22:00');
+      setSelectedEndTime('23:00');
     }
   };
 
