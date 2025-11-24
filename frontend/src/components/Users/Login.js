@@ -48,10 +48,8 @@ export default function Login() {
 
           if (tipoUsuario === "1") {
             navigate('/activityForm');
-            window.location.reload(); 
           } else {
-            navigate('actividades')
-            window.location.reload();
+            navigate('/actividades')
           }
         }
       })
