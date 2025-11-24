@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import Navbar from './components/Navbar/Navbar';
 import ActivityList from './components/Activity/ActivityList';
 import ActivityForm from './components/Activity/ActivityForm';
+import PrivateRoute from './components/PrivateRoute';
 
 // import SignUp from './components/Users/Register';
 import Login from './components/Users/Login';
@@ -32,14 +33,14 @@ ReactDOM.render(
         {/* <Route path="/login" Component={Login}/> */}
         <Route path="/register" element={<Register />} />
         <Route path="/logout" element={<Logout/>}/>
-        <Route path="/activity/:id/datos" Component={DatosActivityForm}/>
-        <Route path="/actividades" Component={ActivityList}/>
-        <Route path="/activityForm" Component={ActivityForm}/>
-        <Route path="/updateActivity/:id" Component={ActivityForm}/>
-        <Route path="/activity/lugares_disponibles/:id/" Component={DatosActivityList}/>
-        <Route path="/usuario/:id_user/reservas/" Component={ReservaList}/>    
-        <Route path="/mensaje/obtener_mensaje/" Component={MensajeList}/>
-        <Route path="/mensaje/crear_mensaje/" Component={MensajeForm}/>
+        <Route path="/activity/:id/datos" element={<PrivateRoute><DatosActivityForm /></PrivateRoute>}/>
+        <Route path="/actividades" element={<PrivateRoute><ActivityList /></PrivateRoute>}/>
+        <Route path="/activityForm" element={<PrivateRoute><ActivityForm /></PrivateRoute>}/>
+        <Route path="/updateActivity/:id" element={<PrivateRoute><ActivityForm /></PrivateRoute>}/>
+        <Route path="/activity/lugares_disponibles/:id/" element={<PrivateRoute><DatosActivityList /></PrivateRoute>}/>
+        <Route path="/usuario/:id_user/reservas/" element={<PrivateRoute><ReservaList /></PrivateRoute>}/>    
+        <Route path="/mensaje/obtener_mensaje/" element={<PrivateRoute><MensajeList /></PrivateRoute>}/>
+        <Route path="/mensaje/crear_mensaje/" element={<PrivateRoute><MensajeForm /></PrivateRoute>}/>
 
 
 

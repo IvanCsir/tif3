@@ -41,7 +41,8 @@ export default function Login() {
       )
       .then(function (response) {
         if (response.status === 200) {
-          localStorage.setItem('usuario_nombre', response.data.usuario)
+          localStorage.setItem('usuario_nombre', response.data.nombre)
+          localStorage.setItem('usuario_apellido', response.data.apellido)
           localStorage.setItem('usuario_id', response.data.id)
           localStorage.setItem('tipo_usuario', response.data.tipo)
           const tipoUsuario = localStorage.getItem('tipo_usuario');
