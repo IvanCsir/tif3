@@ -346,20 +346,22 @@ class ReservaView(viewsets.ViewSet):
         serializer = TraerReservaSerializer(reservas, many=True)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['delete'])
+    def cancelar_reserva(self, request, id_reserva=None):
+        try:
+            reserva = get_object_or_404(Reserva, id=id_reserva)
+            datos_activity = reserva.datos_activity
+            
+            with transaction.atomic():
+                # Incrementar la capacidad disponible
+                datos_activity.capacity = F('capacity') + 1
+                datos_activity.save()
+                # Eliminar la reserva
+                reserva.delete()
 
-
-    # @action(detail=True, methods=['delete'], url_path='cancelar_reserva/(?P<id_datos_activity>\d+)')
-    # def cancelar_reserva(self, request, id_act=None, id_datos_activity=None):
-    #     datos_activity = get_object_or_404(DatosActivity, id_act=id_datos_activity)
-    #     usuario = request.user.id
-    #     reserva = get_object_or_404(Reserva, usuario=usuario, datos_activity=datos_activity)
-        
-    #     with transaction.atomic():
-    #         datos_activity.capacity = F('capacity') + 1
-    #         datos_activity.save()
-    #         reserva.delete()
-
-    #     return Response({'message': 'Reserva cancelada'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Reserva cancelada exitosamente'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MensajeView(viewsets.ViewSet):
