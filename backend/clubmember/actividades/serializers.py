@@ -46,7 +46,7 @@ class TraerReservaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reserva
-        fields = ('usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar")
+        fields = ('id', 'usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar")
         read_only_fields = ('usuario',)
 
     def get_activity_name(self, obj):

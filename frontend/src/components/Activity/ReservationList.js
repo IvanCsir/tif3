@@ -6,10 +6,22 @@ import {
   Paper,
   Grid,
   Box,
+  Button,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 function ReservaList() {
   const [reservas, setReservas] = useState([]);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('success');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [reservaToDelete, setReservaToDelete] = useState(null);
   const id_usuario = parseInt(localStorage.getItem('usuario_id'));
 
   useEffect(() => {
@@ -21,6 +33,41 @@ function ReservaList() {
         console.log(error);
       });
   },[]);
+
+  const handleOpenDialog = (reservaId) => {
+    setReservaToDelete(reservaId);
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setReservaToDelete(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (reservaToDelete) {
+      axios.delete(`${API_BASE_URL}/api/activities/reserva/${reservaToDelete}/cancelar/`)
+        .then(response => {
+          setAlertMessage('Reserva cancelada exitosamente');
+          setAlertSeverity('success');
+          setAlertOpen(true);
+          setReservas(reservas.filter(reserva => reserva.id !== reservaToDelete));
+          setTimeout(() => {
+            setAlertOpen(false);
+          }, 3000);
+        })
+        .catch(error => {
+          setAlertMessage('Error al cancelar la reserva');
+          setAlertSeverity('error');
+          setAlertOpen(true);
+          console.error(error);
+          setTimeout(() => {
+            setAlertOpen(false);
+          }, 3000);
+        });
+    }
+    handleCloseDialog();
+  };
 
   const currentDate = new Date().setUTCHours(0, 0, 0, 0);
   // Ordena las reservas por fecha en orden ascendente
@@ -51,6 +98,13 @@ function ReservaList() {
           Reservas
         </Typography>
       </Box>
+      {alertOpen && (
+        <Box mt={2} display="flex" justifyContent="center">
+          <Alert severity={alertSeverity} onClose={() => setAlertOpen(false)}>
+            {alertMessage}
+          </Alert>
+        </Box>
+      )}
       <Box mt={2}>
         <Grid container justifyContent="center" alignItems="center" spacing={2}>
           {reservasFiltradasFecha.map((reserva) => (
@@ -83,11 +137,45 @@ function ReservaList() {
                     </>
                   )}
                 {/* <Typography>{reserva.fecha_reserva}</Typography> */}
+                <Box mt={2} display="flex" justifyContent="center">
+                  <Button 
+                    variant="contained" 
+                    color="error"
+                    size="small"
+                    onClick={() => handleOpenDialog(reserva.id)}
+                  >
+                    Eliminar Reserva
+                  </Button>
+                </Box>
               </Paper>
             </Grid>
           ))}
         </Grid>
       </Box>
+
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Confirmar cancelación
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            ¿Está seguro que desea cancelar esta reserva?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            No
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Sí, eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
