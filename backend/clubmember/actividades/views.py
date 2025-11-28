@@ -26,12 +26,12 @@ from django.core.mail import send_mail
 from accounts.models import DatosUsuarios
 from urllib.parse import urlencode
 from django.core.mail import EmailMessage
-import tempfile
 from icalendar import Calendar, Event
 import os
 import qrcode
 from io import BytesIO
 from django.db.models import OuterRef, Subquery
+from django.conf import settings
 
 # Create your views here.
 
@@ -277,6 +277,19 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "al aire libre"
             else:
                 mensaje_lugar = "bajo techo"
+            
+            # Verificar configuración de email antes de intentar enviar
+            email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
+            
+            if not email_configured:
+                print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
+                print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
+                # La reserva se creará de todas formas, pero sin enviar email
+                return Response({
+                    'message': 'Reserva creada exitosamente (email no configurado)',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            
             # Crea un objeto Calendar
             cal = Calendar()
 
@@ -292,49 +305,33 @@ class ReservaView(viewsets.ViewSet):
             # Agrega el Evento al Calendar
             cal.add_component(event)
 
-            # Guarda el Calendar en un archivo temporal
-            with tempfile.NamedTemporaryFile(suffix='.ics', prefix='evento_', delete=False) as f:
-                filename = f.name
-                f.write(cal.to_ical())
-                f.flush()
+            # Genera el contenido del archivo .ics en memoria
+            ics_content = cal.to_ical()
+            
+            # Nombre del archivo adjunto
+            attachment_filename = f'{mail_actividad_nombre}.ics'
 
-                # Cambia el nombre del archivo temporal
-                new_filename = f'{mail_actividad_nombre}_.ics'
-                os.rename(filename, new_filename)
+            # Envía el correo electrónico con el archivo adjunto en memoria
+            subject = 'Reserva exitosa'
+            message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
+            message += f'Fecha: {mail_dia}\n'
+            message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+            message += f'Puede agregar el evento a su calendario si así lo desea'
 
-                #Código para generar el QR
-                # # Genera el código QR
-                # qr = qrcode.QRCode(
-                #     version=1,
-                #     error_correction=qrcode.constants.ERROR_CORRECT_L,
-                #     box_size=10,
-                #     border=4,
-                # )
-                # qr.add_data(f'Ingreso a la actividad {mail_actividad_nombre}')  # Puedes agregar cualquier texto o URL aquí
-                # qr.make(fit=True)
-
-                # # Genera la imagen del código QR en memoria
-                # qr_image = qr.make_image()
-
-                # # Crea un buffer de BytesIO para almacenar la imagen en memoria
-                # buffer = BytesIO()
-                # qr_image.save(buffer, format='PNG')
-                # buffer.seek(0)
-
-                
-
-                # Envía el correo electrónico con el archivo adjunto
-                subject = 'Reserva exitosa'
-                message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-                message += f'Fecha: {mail_dia}\n'
-                message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-                message += f'Puede agregar el evento a su calendario si así lo desea'
-
-
-                email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
-                email.attach_file(new_filename)
-                # email.attach(f'{mail_actividad_nombre}.png', buffer.getvalue(), 'image/png')
+            email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
+            
+            # Adjuntar el archivo .ics directamente desde memoria (sin crear archivo temporal)
+            email.attach(attachment_filename, ics_content, 'text/calendar')
+            
+            try:
                 email.send()
+                print(f"✓ Email enviado exitosamente a {usuario.email}")
+            except Exception as e:
+                print(f"✗ Error al enviar email: {str(e)}")
+                print(f"EMAIL_HOST_USER configurado: {os.getenv('EMAIL_HOST_USER') is not None}")
+                print(f"EMAIL_HOST_PASSWORD configurado: {os.getenv('EMAIL_HOST_PASSWORD') is not None}")
+                # No fallar la reserva si el email falla
+                # return Response({'message': f'Reserva creada pero error al enviar email: {str(e)}'}, status=status.HTTP_201_CREATED)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
