@@ -203,6 +203,8 @@ if os.getenv('SENDGRID_API_KEY'):
     EMAIL_USE_SSL = False
     EMAIL_HOST_USER = 'apikey'  # SendGrid siempre usa 'apikey' como usuario
     EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
+    # Para SendGrid, el from_email debe ser el email verificado en SendGrid
+    DEFAULT_FROM_EMAIL = os.getenv('SENDGRID_FROM_EMAIL', os.getenv('EMAIL_FROM', 'noreply@clubmember.com'))
 else:
     # Configuración para Gmail (puede estar bloqueada en Render)
     EMAIL_HOST = 'smtp.gmail.com'
@@ -211,9 +213,9 @@ else:
     EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", 'noreply@clubmember.com')
 
 EMAIL_TIMEOUT = 30
-DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", 'noreply@clubmember.com')
 
 # Weather API configuration
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')

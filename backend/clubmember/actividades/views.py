@@ -376,7 +376,7 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "bajo techo"
             
             # ==== PROCESO DE ENVÍO DE EMAIL ====
-            # Enviar email de forma asíncrona para no bloquear el worker
+            # Enviar email de forma controlada con timeout corto
             try:
                 email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
                 print(f"Email configurado: {settings.EMAIL_HOST_PASSWORD[:10] if settings.EMAIL_HOST_PASSWORD else 'NO'}...")
@@ -384,18 +384,43 @@ class ReservaView(viewsets.ViewSet):
                 if not email_configured:
                     print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
                 else:
-                    # Iniciar envío de email en thread separado (no bloquea la respuesta)
-                    email_thread = threading.Thread(
-                        target=enviar_email_reserva_async,
-                        args=(usuario.email, mail_actividad_nombre, mensaje_lugar, mail_dia, mail_start_time, mail_end_time),
-                        daemon=True
+                    print(f"📧 Preparando email para {usuario.email}")
+                    
+                    # Crear calendario simple y compacto
+                    cal = Calendar()
+                    cal.add('version', '2.0')
+                    
+                    event = Event()
+                    event.add('summary', f'{mail_actividad_nombre} {mensaje_lugar}')
+                    event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
+                    event.add('dtend', datetime.combine(mail_dia, mail_end_time))
+                    cal.add_component(event)
+                    
+                    ics_content = cal.to_ical()
+                    print(f"✓ Calendario creado ({len(ics_content)} bytes)")
+                    
+                    # Email simple - usar DEFAULT_FROM_EMAIL que está correctamente configurado
+                    from_email = settings.DEFAULT_FROM_EMAIL
+                    to_email = usuario.email
+                    
+                    print(f"From: {from_email}, To: {to_email}")
+                    
+                    email = EmailMessage(
+                        subject='Reserva confirmada',
+                        body=f'Reserva confirmada para {mail_actividad_nombre}\nFecha: {mail_dia}\nHorario: {mail_start_time}-{mail_end_time}',
+                        from_email=from_email,
+                        to=[to_email]
                     )
-                    email_thread.start()
-                    print(f"✓ Email programado para envío asíncrono a {usuario.email}")
+                    email.attach(f'{mail_actividad_nombre.replace(" ", "_")}.ics', ics_content, 'text/calendar')
+                    
+                    print(f"✓ Email preparado, enviando...")
+                    email.send(fail_silently=False)
+                    print(f"✓✓✓ Email ENVIADO exitosamente a {to_email}")
                     
             except Exception as e:
-                print(f"✗ Error al programar email: {str(e)}")
-                # El error de email NO debe impedir que la reserva se complete
+                print(f"✗✗✗ ERROR al enviar email: {str(e)[:200]}")
+                print(f"Tipo: {type(e).__name__}")
+                # La reserva ya está guardada, el error de email no la afecta
 
             print(f"✓ Reserva completada exitosamente")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
