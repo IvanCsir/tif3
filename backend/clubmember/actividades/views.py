@@ -376,7 +376,7 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "bajo techo"
             
             # ==== PROCESO DE ENVÍO DE EMAIL ====
-            # Enviar email de forma controlada con timeout corto
+            # Enviar email SIN adjunto para evitar SIGKILL por memoria
             try:
                 email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
                 print(f"Email configurado: {settings.EMAIL_HOST_PASSWORD[:10] if settings.EMAIL_HOST_PASSWORD else 'NO'}...")
@@ -384,37 +384,38 @@ class ReservaView(viewsets.ViewSet):
                 if not email_configured:
                     print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
                 else:
-                    print(f"📧 Preparando email para {usuario.email}")
+                    print(f"📧 Enviando email simple (sin adjunto) a {usuario.email}")
                     
-                    # Crear calendario simple y compacto
-                    cal = Calendar()
-                    cal.add('version', '2.0')
-                    
-                    event = Event()
-                    event.add('summary', f'{mail_actividad_nombre} {mensaje_lugar}')
-                    event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
-                    event.add('dtend', datetime.combine(mail_dia, mail_end_time))
-                    cal.add_component(event)
-                    
-                    ics_content = cal.to_ical()
-                    print(f"✓ Calendario creado ({len(ics_content)} bytes)")
-                    
-                    # Email simple - usar DEFAULT_FROM_EMAIL que está correctamente configurado
                     from_email = settings.DEFAULT_FROM_EMAIL
                     to_email = usuario.email
                     
+                    # Email simple SIN adjunto para evitar consumo de memoria
+                    subject = 'Reserva confirmada - Club Member'
+                    body = f'''¡Hola!
+
+Tu reserva ha sido confirmada exitosamente.
+
+Actividad: {mail_actividad_nombre} ({mensaje_lugar})
+📅 Fecha: {mail_dia}
+🕐 Horario: {mail_start_time} - {mail_end_time}
+
+¡Nos vemos!
+
+Saludos,
+Club Member'''
+                    
                     print(f"From: {from_email}, To: {to_email}")
                     
-                    email = EmailMessage(
-                        subject='Reserva confirmada',
-                        body=f'Reserva confirmada para {mail_actividad_nombre}\nFecha: {mail_dia}\nHorario: {mail_start_time}-{mail_end_time}',
+                    # Enviar sin adjunto para evitar problemas de memoria
+                    from django.core.mail import send_mail
+                    send_mail(
+                        subject=subject,
+                        message=body,
                         from_email=from_email,
-                        to=[to_email]
+                        recipient_list=[to_email],
+                        fail_silently=False
                     )
-                    email.attach(f'{mail_actividad_nombre.replace(" ", "_")}.ics', ics_content, 'text/calendar')
                     
-                    print(f"✓ Email preparado, enviando...")
-                    email.send(fail_silently=False)
                     print(f"✓✓✓ Email ENVIADO exitosamente a {to_email}")
                     
             except Exception as e:
