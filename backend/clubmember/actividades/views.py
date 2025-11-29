@@ -375,28 +375,31 @@ class ReservaView(viewsets.ViewSet):
             else:
                 mensaje_lugar = "bajo techo"
             
-            # ==== PROCESO DE ENVÍO DE EMAIL ====
-            # Intentar enviar email y capturar el error REAL
+            # ==== ENVÍO DE EMAIL EN THREAD SEPARADO ====
+            # El email se envía de forma asíncrona para evitar timeout del worker
             try:
-                from_email = settings.DEFAULT_FROM_EMAIL
-                to_email = usuario.email
-                subject = f'Reserva confirmada: {mail_actividad_nombre}'
-                body = f'Reserva confirmada para {mail_actividad_nombre} el {mail_dia} de {mail_start_time} a {mail_end_time}.'
+                print(f"📧 Iniciando envío de email en thread separado...")
+                print(f"    Para: {usuario.email}")
+                print(f"    Actividad: {mail_actividad_nombre}")
                 
-                print(f"📧 Enviando email: {from_email} -> {to_email}")
-                
-                from django.core.mail import send_mail
-                resultado = send_mail(subject, body, from_email, [to_email], fail_silently=False)
-                
-                print(f"✓✓✓ EMAIL ENVIADO (resultado={resultado})")
+                email_thread = threading.Thread(
+                    target=enviar_email_reserva_async,
+                    args=(
+                        usuario.email,
+                        mail_actividad_nombre,
+                        mensaje_lugar,
+                        mail_dia,
+                        mail_start_time,
+                        mail_end_time
+                    ),
+                    daemon=True  # Thread termina cuando el proceso principal termine
+                )
+                email_thread.start()
+                print(f"✓ Thread de email iniciado (no bloquea respuesta)")
                 
             except Exception as e:
-                # Capturar el error REAL y mostrarlo completo
-                import traceback
-                print(f"✗✗✗ ERROR AL ENVIAR EMAIL:")
-                print(f"    Tipo: {type(e).__name__}")
-                print(f"    Mensaje: {str(e)}")
-                print(f"    Traceback: {traceback.format_exc()[:500]}")
+                print(f"✗ Error iniciando thread de email: {str(e)}")
+                # No fallamos la reserva si el email falla
 
             print(f"✓ Reserva completada exitosamente")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
