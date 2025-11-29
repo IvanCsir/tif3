@@ -193,13 +193,26 @@ CSRF_COOKIE_HTTPONLY= False
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_TIMEOUT = 30  # Timeout de 30 segundos
+
+# Detectar si usamos SendGrid o Gmail
+if os.getenv('SENDGRID_API_KEY'):
+    # Configuración para SendGrid (recomendado para Render)
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
+    EMAIL_HOST_USER = 'apikey'  # SendGrid siempre usa 'apikey' como usuario
+    EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')
+else:
+    # Configuración para Gmail (puede estar bloqueada en Render)
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '465'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+    EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True') == 'True'
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+EMAIL_TIMEOUT = 30
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", 'noreply@clubmember.com')
 
 # Weather API configuration

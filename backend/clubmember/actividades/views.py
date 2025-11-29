@@ -246,11 +246,16 @@ class ReservaView(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def test_config(self, request):
         """Endpoint de prueba para verificar configuración"""
+        using_sendgrid = bool(os.getenv('SENDGRID_API_KEY'))
         return Response({
-            'email_host_user': settings.EMAIL_HOST_USER[:5] + '***' if settings.EMAIL_HOST_USER else 'NO CONFIGURADO',
-            'email_host_password': 'CONFIGURADO' if settings.EMAIL_HOST_PASSWORD else 'NO CONFIGURADO',
+            'email_provider': 'SendGrid' if using_sendgrid else 'Gmail',
             'email_host': settings.EMAIL_HOST,
             'email_port': settings.EMAIL_PORT,
+            'email_use_tls': settings.EMAIL_USE_TLS,
+            'email_use_ssl': settings.EMAIL_USE_SSL,
+            'email_host_user': settings.EMAIL_HOST_USER[:5] + '***' if settings.EMAIL_HOST_USER else 'NO CONFIGURADO',
+            'email_host_password': 'CONFIGURADO' if settings.EMAIL_HOST_PASSWORD else 'NO CONFIGURADO',
+            'sendgrid_configured': using_sendgrid,
             'debug': settings.DEBUG,
         })
     
@@ -352,7 +357,8 @@ class ReservaView(viewsets.ViewSet):
                     message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
                     message += f'Puede agregar el evento a su calendario si así lo desea'
 
-                    email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
+                    from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
+                    email = EmailMessage(subject, message, from_email, [usuario.email])
                     
                     # Adjuntar el archivo .ics directamente desde memoria (sin crear archivo temporal)
                     email.attach(attachment_filename, ics_content, 'text/calendar')
