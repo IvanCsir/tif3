@@ -28,13 +28,22 @@ class DatosActivitySerializer(serializers.ModelSerializer):
 
 class ReservaSerializer(serializers.ModelSerializer):
     datos_activity = serializers.PrimaryKeyRelatedField(read_only=True)
-    usuario = serializers.PrimaryKeyRelatedField(queryset=DatosUsuarios.objects.all())
-    # datos_activity = DatosActivitySerializer()
+    usuario = serializers.PrimaryKeyRelatedField(
+        queryset=DatosUsuarios.objects.all(),
+        required=True,
+        allow_null=False
+    )
 
     class Meta:
         model = Reserva
         fields = ('usuario', 'datos_activity', 'fecha_reserva')
-        read_only_fields = ('usuario',)
+        read_only_fields = ('datos_activity', 'fecha_reserva')
+    
+    def validate_usuario(self, value):
+        """Validar que el usuario existe"""
+        if not value:
+            raise serializers.ValidationError("Usuario es requerido")
+        return value
 
 class TraerReservaSerializer(serializers.ModelSerializer):
     datos_activity = serializers.PrimaryKeyRelatedField(read_only=True)

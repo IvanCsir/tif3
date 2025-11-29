@@ -242,28 +242,62 @@ class DatosActivityView(viewsets.ViewSet):
         return Response(serializer.data)
 
 class ReservaView(viewsets.ViewSet):
+    
+    @action(detail=False, methods=['get'])
+    def test_config(self, request):
+        """Endpoint de prueba para verificar configuración"""
+        return Response({
+            'email_host_user': settings.EMAIL_HOST_USER[:5] + '***' if settings.EMAIL_HOST_USER else 'NO CONFIGURADO',
+            'email_host_password': 'CONFIGURADO' if settings.EMAIL_HOST_PASSWORD else 'NO CONFIGURADO',
+            'email_host': settings.EMAIL_HOST,
+            'email_port': settings.EMAIL_PORT,
+            'debug': settings.DEBUG,
+        })
+    
     @action(detail=True, methods=['post'])
     def reservar(self, request, id_act=None, id_datos_activity=None):
-        print(request.user)
-        datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
-        # actividad = get_object_or_404(Activity, id)
+        print(f"=== INICIO RESERVA ===")
+        print(f"Usuario autenticado: {request.user}")
+        print(f"Datos recibidos: {request.data}")
+        print(f"id_act: {id_act}, id_datos_activity: {id_datos_activity}")
+        
+        try:
+            datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
+            print(f"✓ DatosActivity encontrado: {datos_activity}")
+        except Exception as e:
+            print(f"✗ Error obteniendo DatosActivity: {str(e)}")
+            return Response({'message': f'Error: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = ReservaSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
+            print(f"✓ Serializer válido")
             usuario_id = request.data.get('usuario')  # Obtener el ID del usuario del cuerpo de la solicitud
-            usuario = DatosUsuarios.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
+            print(f"Usuario ID recibido: {usuario_id}")
+            
+            try:
+                usuario = DatosUsuarios.objects.get(pk=usuario_id)  # Obtener la instancia del usuario a partir del ID
+                print(f"✓ Usuario encontrado: {usuario.email}")
+            except DatosUsuarios.DoesNotExist:
+                print(f"✗ Usuario no encontrado con ID: {usuario_id}")
+                return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
+            
             reserva_existente = Reserva.objects.filter(usuario=usuario, datos_activity=datos_activity).exists()
             if reserva_existente:
+                print(f"✗ Reserva duplicada para usuario {usuario_id}")
                 return Response({'message': 'Ya has realizado una reserva en esta actividad'}, status=status.HTTP_400_BAD_REQUEST)
 
             capacidad_actualizada = datos_activity.capacity - 1
+            print(f"Capacidad actual: {datos_activity.capacity}, después de reserva: {capacidad_actualizada}")
             if capacidad_actualizada < 0:
+                print(f"✗ Sin capacidad disponible")
                 return Response({'message': 'No hay capacidad disponible para realizar la reserva'}, status=status.HTTP_400_BAD_REQUEST)
 
             with transaction.atomic():
                 serializer.save(usuario=usuario, datos_activity=datos_activity)
                 datos_activity.capacity = F('capacity') - 1
                 datos_activity.save()
+                print(f"✓ Reserva guardada en BD")
             
             # Obtener los atributos de datos_activity
             mail_dia = datos_activity.day #YYYY/MM/DD
@@ -278,63 +312,68 @@ class ReservaView(viewsets.ViewSet):
             else:
                 mensaje_lugar = "bajo techo"
             
-            # Verificar configuración de email antes de intentar enviar
-            email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
-            
-            if not email_configured:
-                print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
-                print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
-                # La reserva se creará de todas formas, pero sin enviar email
-                return Response({
-                    'message': 'Reserva creada exitosamente (email no configurado)',
-                    'data': serializer.data
-                }, status=status.HTTP_201_CREATED)
-            
-            # Crea un objeto Calendar
-            cal = Calendar()
-
-            # Crea un objeto Event
-            event = Event()
-
-            # Define las propiedades del Evento
-            event.add('summary', f'Reserva para {mail_actividad_nombre} {mensaje_lugar}')
-            event.add('location', 'Mendoza')
-            event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
-            event.add('dtend', datetime.combine(mail_dia, mail_end_time))
-
-            # Agrega el Evento al Calendar
-            cal.add_component(event)
-
-            # Genera el contenido del archivo .ics en memoria
-            ics_content = cal.to_ical()
-            
-            # Nombre del archivo adjunto
-            attachment_filename = f'{mail_actividad_nombre}.ics'
-
-            # Envía el correo electrónico con el archivo adjunto en memoria
-            subject = 'Reserva exitosa'
-            message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-            message += f'Fecha: {mail_dia}\n'
-            message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-            message += f'Puede agregar el evento a su calendario si así lo desea'
-
-            email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
-            
-            # Adjuntar el archivo .ics directamente desde memoria (sin crear archivo temporal)
-            email.attach(attachment_filename, ics_content, 'text/calendar')
-            
+            # ==== PROCESO DE ENVÍO DE EMAIL ====
+            # Todo este proceso está envuelto en try-except para que nunca falle la reserva
             try:
-                email.send()
-                print(f"✓ Email enviado exitosamente a {usuario.email}")
+                # Verificar configuración de email antes de intentar enviar
+                email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
+                print(f"Email configurado: {email_configured}")
+                
+                if not email_configured:
+                    print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
+                    print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
+                else:
+                    # Crea un objeto Calendar
+                    cal = Calendar()
+
+                    # Crea un objeto Event
+                    event = Event()
+
+                    # Define las propiedades del Evento
+                    event.add('summary', f'Reserva para {mail_actividad_nombre} {mensaje_lugar}')
+                    event.add('location', 'Mendoza')
+                    event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
+                    event.add('dtend', datetime.combine(mail_dia, mail_end_time))
+                    print(f"✓ Evento del calendario creado")
+
+                    # Agrega el Evento al Calendar
+                    cal.add_component(event)
+
+                    # Genera el contenido del archivo .ics en memoria
+                    ics_content = cal.to_ical()
+                    
+                    # Nombre del archivo adjunto
+                    attachment_filename = f'{mail_actividad_nombre}.ics'
+
+                    # Envía el correo electrónico con el archivo adjunto en memoria
+                    subject = 'Reserva exitosa'
+                    message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
+                    message += f'Fecha: {mail_dia}\n'
+                    message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
+                    message += f'Puede agregar el evento a su calendario si así lo desea'
+
+                    email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
+                    
+                    # Adjuntar el archivo .ics directamente desde memoria (sin crear archivo temporal)
+                    email.attach(attachment_filename, ics_content, 'text/calendar')
+                    
+                    email.send()
+                    print(f"✓ Email enviado exitosamente a {usuario.email}")
+                    
             except Exception as e:
-                print(f"✗ Error al enviar email: {str(e)}")
-                print(f"EMAIL_HOST_USER configurado: {os.getenv('EMAIL_HOST_USER') is not None}")
-                print(f"EMAIL_HOST_PASSWORD configurado: {os.getenv('EMAIL_HOST_PASSWORD') is not None}")
-                # No fallar la reserva si el email falla
-                # return Response({'message': f'Reserva creada pero error al enviar email: {str(e)}'}, status=status.HTTP_201_CREATED)
+                # Capturar CUALQUIER error del proceso de email
+                print(f"✗ Error en proceso de email: {str(e)}")
+                print(f"Tipo de error: {type(e).__name__}")
+                import traceback
+                print(f"Traceback completo: {traceback.format_exc()}")
+                print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
+                print(f"EMAIL_HOST_PASSWORD configurado: {'Sí' if settings.EMAIL_HOST_PASSWORD else 'No'}")
+                # El error de email NO debe impedir que la reserva se complete
 
+            print(f"✓ Reserva completada exitosamente")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        
+        print(f"✗ Serializer inválido. Errores: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['GET'])
