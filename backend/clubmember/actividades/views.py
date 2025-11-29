@@ -33,65 +33,62 @@ from io import BytesIO
 from django.db.models import OuterRef, Subquery
 from django.conf import settings
 import threading
+import sys
 
 # Create your views here.
 
-def enviar_email_reserva_async(usuario_email, mail_actividad_nombre, mensaje_lugar, mail_dia, mail_start_time, mail_end_time):
+def enviar_email_sync_con_timeout(usuario_email, mail_actividad_nombre, mensaje_lugar, mail_dia, mail_start_time, mail_end_time):
     """
-    Envía el email de confirmación de reserva en un thread separado
-    para no bloquear el worker principal
+    Envía el email de confirmación con timeout corto.
+    Se ejecuta en el request pero con límite de tiempo.
     """
+    import socket
+    original_timeout = socket.getdefaulttimeout()
+    
     try:
-        print(f"📧 [Thread] Iniciando envío de email a {usuario_email}")
+        # Timeout de 10 segundos para la conexión SMTP
+        socket.setdefaulttimeout(10)
         
-        # Crea un objeto Calendar
-        cal = Calendar()
-        cal.add('prodid', '-//Club Member//Reserva//ES')
-        cal.add('version', '2.0')
-
-        # Crea un objeto Event
-        event = Event()
-        event.add('summary', f'Reserva: {mail_actividad_nombre} {mensaje_lugar}')
-        event.add('location', 'Mendoza, Argentina')
-        event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
-        event.add('dtend', datetime.combine(mail_dia, mail_end_time))
-        event.add('dtstamp', datetime.now())
+        print(f"📧 Enviando email a {usuario_email}...")
+        sys.stdout.flush()
         
-        # Agrega el Evento al Calendar
-        cal.add_component(event)
-        
-        # Genera el contenido del archivo .ics
-        ics_content = cal.to_ical()
-        attachment_filename = f'{mail_actividad_nombre.replace(" ", "_")}.ics'
-        
-        # Prepara el mensaje
-        subject = 'Reserva exitosa - Club Member'
+        # Email simple sin adjuntos para máxima velocidad
+        subject = f'Reserva confirmada: {mail_actividad_nombre}'
         message = f'¡Hola!\n\n'
-        message += f'Su reserva para la actividad "{mail_actividad_nombre}" ({mensaje_lugar}) '
-        message += f'se ha realizado exitosamente.\n\n'
-        message += f'📅 Fecha: {mail_dia}\n'
-        message += f'🕐 Horario: {mail_start_time} - {mail_end_time}\n\n'
-        message += f'Puede agregar este evento a su calendario usando el archivo adjunto.\n\n'
-        message += f'¡Nos vemos en la actividad!\n\n'
-        message += f'Saludos,\nClub Member'
+        message += f'Tu reserva para "{mail_actividad_nombre}" ({mensaje_lugar}) fue confirmada.\n\n'
+        message += f'Fecha: {mail_dia}\n'
+        message += f'Horario: {mail_start_time} - {mail_end_time}\n\n'
+        message += f'¡Nos vemos!\nClub Member'
 
-        from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
+        from_email = settings.DEFAULT_FROM_EMAIL
         
-        # Crear y enviar email
-        email = EmailMessage(
+        from django.core.mail import send_mail
+        result = send_mail(
             subject=subject,
-            body=message,
+            message=message,
             from_email=from_email,
-            to=[usuario_email]
+            recipient_list=[usuario_email],
+            fail_silently=False
         )
-        email.attach(attachment_filename, ics_content, 'text/calendar')
-        email.send(fail_silently=False)
         
-        print(f"✓ [Thread] Email enviado exitosamente a {usuario_email}")
+        print(f"✓✓✓ EMAIL ENVIADO EXITOSAMENTE (result={result})")
+        sys.stdout.flush()
+        return True
+        
+    except socket.timeout:
+        print(f"✗ Email timeout después de 10 segundos")
+        sys.stdout.flush()
+        return False
         
     except Exception as e:
-        print(f"✗ [Thread] Error al enviar email: {str(e)}")
-        print(f"   Tipo: {type(e).__name__}")
+        import traceback
+        print(f"✗✗✗ ERROR EMAIL: {type(e).__name__}: {str(e)}")
+        print(f"    Traceback: {traceback.format_exc()[:300]}")
+        sys.stdout.flush()
+        return False
+        
+    finally:
+        socket.setdefaulttimeout(original_timeout)
 
 class ActivityView(View):
     
@@ -375,30 +372,30 @@ class ReservaView(viewsets.ViewSet):
             else:
                 mensaje_lugar = "bajo techo"
             
-            # ==== ENVÍO DE EMAIL EN THREAD SEPARADO ====
-            # El email se envía de forma asíncrona para evitar timeout del worker
+            # ==== ENVÍO DE EMAIL SÍNCRONO CON TIMEOUT ====
+            # Intentamos enviar el email con un timeout corto
             try:
-                print(f"📧 Iniciando envío de email en thread separado...")
+                print(f"📧 Intentando enviar email...")
                 print(f"    Para: {usuario.email}")
                 print(f"    Actividad: {mail_actividad_nombre}")
+                sys.stdout.flush()
                 
-                email_thread = threading.Thread(
-                    target=enviar_email_reserva_async,
-                    args=(
-                        usuario.email,
-                        mail_actividad_nombre,
-                        mensaje_lugar,
-                        mail_dia,
-                        mail_start_time,
-                        mail_end_time
-                    ),
-                    daemon=True  # Thread termina cuando el proceso principal termine
+                email_enviado = enviar_email_sync_con_timeout(
+                    usuario.email,
+                    mail_actividad_nombre,
+                    mensaje_lugar,
+                    mail_dia,
+                    mail_start_time,
+                    mail_end_time
                 )
-                email_thread.start()
-                print(f"✓ Thread de email iniciado (no bloquea respuesta)")
                 
+                if email_enviado:
+                    print(f"✓ Email enviado correctamente")
+                else:
+                    print(f"⚠ Email no se pudo enviar (reserva OK)")
+                    
             except Exception as e:
-                print(f"✗ Error iniciando thread de email: {str(e)}")
+                print(f"✗ Excepción en email: {str(e)}")
                 # No fallamos la reserva si el email falla
 
             print(f"✓ Reserva completada exitosamente")
