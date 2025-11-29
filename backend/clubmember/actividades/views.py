@@ -376,48 +376,27 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "bajo techo"
             
             # ==== PROCESO DE ENVÍO DE EMAIL ====
-            # Enviar email SIN adjunto para evitar SIGKILL por memoria
-            email_enviado = False
+            # Intentar enviar email y capturar el error REAL
             try:
-                email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
-                print(f"Email configurado: {settings.EMAIL_HOST_PASSWORD[:10] if settings.EMAIL_HOST_PASSWORD else 'NO'}...")
+                from_email = settings.DEFAULT_FROM_EMAIL
+                to_email = usuario.email
+                subject = f'Reserva confirmada: {mail_actividad_nombre}'
+                body = f'Reserva confirmada para {mail_actividad_nombre} el {mail_dia} de {mail_start_time} a {mail_end_time}.'
                 
-                if not email_configured:
-                    print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
-                else:
-                    print(f"📧 Iniciando envío a {usuario.email}")
-                    
-                    from_email = settings.DEFAULT_FROM_EMAIL
-                    to_email = usuario.email
-                    
-                    subject = 'Reserva confirmada - Club Member'
-                    body = f'''¡Hola!
-
-Tu reserva ha sido confirmada exitosamente.
-
-Actividad: {mail_actividad_nombre} ({mensaje_lugar})
-Fecha: {mail_dia}
-Horario: {mail_start_time} - {mail_end_time}
-
-¡Nos vemos!
-
-Saludos,
-Club Member'''
-                    
-                    print(f"📨 From: {from_email} -> To: {to_email}")
-                    
-                    # Usar send_mail directamente (más simple y ligero)
-                    from django.core.mail import send_mail
-                    num_enviados = send_mail(subject, body, from_email, [to_email], fail_silently=False)
-                    
-                    email_enviado = (num_enviados > 0)
-                    print(f"{'✓✓✓ EMAIL ENVIADO' if email_enviado else '⚠ Email NO enviado'} (resultado: {num_enviados})")
-                    
+                print(f"📧 Enviando email: {from_email} -> {to_email}")
+                
+                from django.core.mail import send_mail
+                resultado = send_mail(subject, body, from_email, [to_email], fail_silently=False)
+                
+                print(f"✓✓✓ EMAIL ENVIADO (resultado={resultado})")
+                
             except Exception as e:
-                print(f"✗✗✗ ERROR email: {type(e).__name__}: {str(e)[:250]}")
-                
-            finally:
-                print(f"Estado final email: {'Enviado' if email_enviado else 'No enviado'}")
+                # Capturar el error REAL y mostrarlo completo
+                import traceback
+                print(f"✗✗✗ ERROR AL ENVIAR EMAIL:")
+                print(f"    Tipo: {type(e).__name__}")
+                print(f"    Mensaje: {str(e)}")
+                print(f"    Traceback: {traceback.format_exc()[:500]}")
 
             print(f"✓ Reserva completada exitosamente")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
