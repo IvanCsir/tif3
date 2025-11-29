@@ -32,8 +32,66 @@ import qrcode
 from io import BytesIO
 from django.db.models import OuterRef, Subquery
 from django.conf import settings
+import threading
 
 # Create your views here.
+
+def enviar_email_reserva_async(usuario_email, mail_actividad_nombre, mensaje_lugar, mail_dia, mail_start_time, mail_end_time):
+    """
+    Envía el email de confirmación de reserva en un thread separado
+    para no bloquear el worker principal
+    """
+    try:
+        print(f"📧 [Thread] Iniciando envío de email a {usuario_email}")
+        
+        # Crea un objeto Calendar
+        cal = Calendar()
+        cal.add('prodid', '-//Club Member//Reserva//ES')
+        cal.add('version', '2.0')
+
+        # Crea un objeto Event
+        event = Event()
+        event.add('summary', f'Reserva: {mail_actividad_nombre} {mensaje_lugar}')
+        event.add('location', 'Mendoza, Argentina')
+        event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
+        event.add('dtend', datetime.combine(mail_dia, mail_end_time))
+        event.add('dtstamp', datetime.now())
+        
+        # Agrega el Evento al Calendar
+        cal.add_component(event)
+        
+        # Genera el contenido del archivo .ics
+        ics_content = cal.to_ical()
+        attachment_filename = f'{mail_actividad_nombre.replace(" ", "_")}.ics'
+        
+        # Prepara el mensaje
+        subject = 'Reserva exitosa - Club Member'
+        message = f'¡Hola!\n\n'
+        message += f'Su reserva para la actividad "{mail_actividad_nombre}" ({mensaje_lugar}) '
+        message += f'se ha realizado exitosamente.\n\n'
+        message += f'📅 Fecha: {mail_dia}\n'
+        message += f'🕐 Horario: {mail_start_time} - {mail_end_time}\n\n'
+        message += f'Puede agregar este evento a su calendario usando el archivo adjunto.\n\n'
+        message += f'¡Nos vemos en la actividad!\n\n'
+        message += f'Saludos,\nClub Member'
+
+        from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
+        
+        # Crear y enviar email
+        email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=from_email,
+            to=[usuario_email]
+        )
+        email.attach(attachment_filename, ics_content, 'text/calendar')
+        email.send(fail_silently=False)
+        
+        print(f"✓ [Thread] Email enviado exitosamente a {usuario_email}")
+        
+    except Exception as e:
+        print(f"✗ [Thread] Error al enviar email: {str(e)}")
+        print(f"   Tipo: {type(e).__name__}")
 
 class ActivityView(View):
     
@@ -318,62 +376,25 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "bajo techo"
             
             # ==== PROCESO DE ENVÍO DE EMAIL ====
-            # Todo este proceso está envuelto en try-except para que nunca falle la reserva
+            # Enviar email de forma asíncrona para no bloquear el worker
             try:
-                # Verificar configuración de email antes de intentar enviar
                 email_configured = settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD
-                print(f"Email configurado: {email_configured}")
+                print(f"Email configurado: {settings.EMAIL_HOST_PASSWORD[:10] if settings.EMAIL_HOST_PASSWORD else 'NO'}...")
                 
                 if not email_configured:
                     print("⚠ Advertencia: EMAIL_HOST_USER o EMAIL_HOST_PASSWORD no están configurados")
-                    print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
                 else:
-                    # Crea un objeto Calendar
-                    cal = Calendar()
-
-                    # Crea un objeto Event
-                    event = Event()
-
-                    # Define las propiedades del Evento
-                    event.add('summary', f'Reserva para {mail_actividad_nombre} {mensaje_lugar}')
-                    event.add('location', 'Mendoza')
-                    event.add('dtstart', datetime.combine(mail_dia, mail_start_time))
-                    event.add('dtend', datetime.combine(mail_dia, mail_end_time))
-                    print(f"✓ Evento del calendario creado")
-
-                    # Agrega el Evento al Calendar
-                    cal.add_component(event)
-
-                    # Genera el contenido del archivo .ics en memoria
-                    ics_content = cal.to_ical()
-                    
-                    # Nombre del archivo adjunto
-                    attachment_filename = f'{mail_actividad_nombre}.ics'
-
-                    # Envía el correo electrónico con el archivo adjunto en memoria
-                    subject = 'Reserva exitosa'
-                    message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-                    message += f'Fecha: {mail_dia}\n'
-                    message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-                    message += f'Puede agregar el evento a su calendario si así lo desea'
-
-                    from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
-                    email = EmailMessage(subject, message, from_email, [usuario.email])
-                    
-                    # Adjuntar el archivo .ics directamente desde memoria (sin crear archivo temporal)
-                    email.attach(attachment_filename, ics_content, 'text/calendar')
-                    
-                    email.send()
-                    print(f"✓ Email enviado exitosamente a {usuario.email}")
+                    # Iniciar envío de email en thread separado (no bloquea la respuesta)
+                    email_thread = threading.Thread(
+                        target=enviar_email_reserva_async,
+                        args=(usuario.email, mail_actividad_nombre, mensaje_lugar, mail_dia, mail_start_time, mail_end_time),
+                        daemon=True
+                    )
+                    email_thread.start()
+                    print(f"✓ Email programado para envío asíncrono a {usuario.email}")
                     
             except Exception as e:
-                # Capturar CUALQUIER error del proceso de email
-                print(f"✗ Error en proceso de email: {str(e)}")
-                print(f"Tipo de error: {type(e).__name__}")
-                import traceback
-                print(f"Traceback completo: {traceback.format_exc()}")
-                print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
-                print(f"EMAIL_HOST_PASSWORD configurado: {'Sí' if settings.EMAIL_HOST_PASSWORD else 'No'}")
+                print(f"✗ Error al programar email: {str(e)}")
                 # El error de email NO debe impedir que la reserva se complete
 
             print(f"✓ Reserva completada exitosamente")
