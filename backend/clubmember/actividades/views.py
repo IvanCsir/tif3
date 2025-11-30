@@ -291,13 +291,16 @@ class ReservaView(viewsets.ViewSet):
 
             # Envía el correo electrónico con el archivo adjunto
             try:
+                from django.conf import settings
                 subject = 'Reserva exitosa'
                 message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
                 message += f'Fecha: {mail_dia}\n'
                 message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
                 message += f'Puede agregar el evento a su calendario si así lo desea'
 
-                email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
+                # Usar EMAIL_FROM_ADDRESS si está configurada, sino usar un default
+                from_email = os.getenv('EMAIL_FROM_ADDRESS', 'i.freiberg@alumno.um.edu.ar')
+                email = EmailMessage(subject, message, from_email, [usuario.email])
                 
                 # Adjuntar el archivo .ics directamente desde memoria (sin usar archivos temporales)
                 ics_content = cal.to_ical()
