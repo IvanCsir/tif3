@@ -11,5 +11,6 @@ npm ci
 # Construir la aplicación para producción
 npm run build
 
-# Copiar serve.json al directorio build
+# Copiar archivos de configuración al directorio build
+cp public/_redirects build/
 cp public/serve.json build/
