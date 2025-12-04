@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 import {Button, Box, Grid, Alert} from "@mui/material";
+import { useNavigate } from 'react-router-dom';
 
 
 const ReservarButton = ({ id_act, id_datos_activity }) => {
 
+    const navigate = useNavigate();
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('error');
@@ -25,8 +27,8 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
             setAlertSeverity('success');
             setAlertOpen(true);
             setTimeout(() => {
-                window.location.reload(); // Refrescar la página después de 5 segundos
-              }, 2000); // Retardo de 5000 milisegundos (5 segundos)
+                navigate('/actividades'); // Redirigir a la lista de actividades
+              }, 2000);
               console.log(response.data);
               console.log(id_usuario);
         }
