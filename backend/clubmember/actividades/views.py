@@ -29,6 +29,8 @@ from django.core.mail import EmailMessage
 from icalendar import Calendar, Event
 import os
 from django.db.models import OuterRef, Subquery
+from django.conf import settings
+import traceback
 
 # Create your views here.
 
@@ -291,7 +293,14 @@ class ReservaView(viewsets.ViewSet):
 
             # Envía el correo electrónico con el archivo adjunto
             try:
-                from django.conf import settings
+                print("=== INICIO ENVÍO DE EMAIL ===")
+                print(f"Backend de email: {settings.EMAIL_BACKEND}")
+                print(f"Host de email: {settings.EMAIL_HOST}")
+                print(f"Puerto: {settings.EMAIL_PORT}")
+                print(f"Usuario de email: {settings.EMAIL_HOST_USER}")
+                print(f"API Key configurada: {'Sí' if os.getenv('SENDGRID_API_KEY') else 'No'}")
+                print(f"Destinatario: {usuario.email}")
+                
                 subject = 'Reserva exitosa'
                 message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
                 message += f'Fecha: {mail_dia}\n'
@@ -300,16 +309,25 @@ class ReservaView(viewsets.ViewSet):
 
                 # Usar EMAIL_FROM_ADDRESS si está configurada, sino usar un default
                 from_email = os.getenv('EMAIL_FROM_ADDRESS', 'i.freiberg@alumno.um.edu.ar')
+                print(f"Remitente: {from_email}")
+                
                 email = EmailMessage(subject, message, from_email, [usuario.email])
                 
                 # Adjuntar el archivo .ics directamente desde memoria (sin usar archivos temporales)
                 ics_content = cal.to_ical()
                 email.attach(f'{mail_actividad_nombre}.ics', ics_content, 'text/calendar')
                 
-                email.send()
+                print("Intentando enviar email...")
+                result = email.send()
+                print(f"Resultado del envío: {result}")
+                print("=== EMAIL ENVIADO EXITOSAMENTE ===")
             except Exception as e:
                 # Log del error pero no bloquear la reserva
-                print(f"Error al enviar email: {str(e)}")
+                print(f"=== ERROR AL ENVIAR EMAIL ===")
+                print(f"Tipo de error: {type(e).__name__}")
+                print(f"Mensaje de error: {str(e)}")
+                print(f"Traceback completo:\n{traceback.format_exc()}")
+                print("=== FIN ERROR EMAIL ===")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
