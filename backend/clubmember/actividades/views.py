@@ -25,13 +25,12 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from accounts.models import DatosUsuarios
 from urllib.parse import urlencode
-from django.core.mail import EmailMessage
-import tempfile
+from django.core.mail import EmailMessage, get_connection
 from icalendar import Calendar, Event
 import os
-import qrcode
-from io import BytesIO
 from django.db.models import OuterRef, Subquery
+from django.conf import settings
+import traceback
 
 # Create your views here.
 
@@ -292,49 +291,72 @@ class ReservaView(viewsets.ViewSet):
             # Agrega el Evento al Calendar
             cal.add_component(event)
 
-            # Guarda el Calendar en un archivo temporal
-            with tempfile.NamedTemporaryFile(suffix='.ics', prefix='evento_', delete=False) as f:
-                filename = f.name
-                f.write(cal.to_ical())
-                f.flush()
-
-                # Cambia el nombre del archivo temporal
-                new_filename = f'{mail_actividad_nombre}_.ics'
-                os.rename(filename, new_filename)
-
-                #Código para generar el QR
-                # # Genera el código QR
-                # qr = qrcode.QRCode(
-                #     version=1,
-                #     error_correction=qrcode.constants.ERROR_CORRECT_L,
-                #     box_size=10,
-                #     border=4,
-                # )
-                # qr.add_data(f'Ingreso a la actividad {mail_actividad_nombre}')  # Puedes agregar cualquier texto o URL aquí
-                # qr.make(fit=True)
-
-                # # Genera la imagen del código QR en memoria
-                # qr_image = qr.make_image()
-
-                # # Crea un buffer de BytesIO para almacenar la imagen en memoria
-                # buffer = BytesIO()
-                # qr_image.save(buffer, format='PNG')
-                # buffer.seek(0)
-
+            # Envía el correo electrónico usando SendGrid API (no SMTP bloqueado por Render)
+            try:
+                print("=== INICIO ENVÍO DE EMAIL ===")
                 
-
-                # Envía el correo electrónico con el archivo adjunto
                 subject = 'Reserva exitosa'
                 message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
                 message += f'Fecha: {mail_dia}\n'
                 message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
                 message += f'Puede agregar el evento a su calendario si así lo desea'
 
-
-                email = EmailMessage(subject, message, 'i.freiberg@alumno.um.edu.ar', [usuario.email])
-                email.attach_file(new_filename)
-                # email.attach(f'{mail_actividad_nombre}.png', buffer.getvalue(), 'image/png')
-                email.send()
+                from_email = os.getenv('EMAIL_FROM_ADDRESS', 'i.freiberg@alumno.um.edu.ar')
+                sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
+                
+                print(f"Destinatario: {usuario.email}")
+                print(f"Remitente: {from_email}")
+                print(f"API Key configurada: {'Sí' if sendgrid_api_key else 'No'}")
+                
+                # Adjuntar el archivo .ics
+                ics_content = cal.to_ical()
+                
+                if sendgrid_api_key:
+                    # Usar SendGrid API directamente (producción)
+                    print("Usando SendGrid API (HTTP)...")
+                    from sendgrid import SendGridAPIClient
+                    from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+                    import base64
+                    
+                    mail = Mail(
+                        from_email=from_email,
+                        to_emails=usuario.email,
+                        subject=subject,
+                        plain_text_content=message
+                    )
+                    
+                    # Adjuntar archivo ICS
+                    encoded_ics = base64.b64encode(ics_content).decode()
+                    attachment = Attachment(
+                        FileContent(encoded_ics),
+                        FileName(f'{mail_actividad_nombre}.ics'),
+                        FileType('text/calendar'),
+                        Disposition('attachment')
+                    )
+                    mail.attachment = attachment
+                    
+                    sg = SendGridAPIClient(sendgrid_api_key)
+                    response = sg.send(mail)
+                    
+                    print(f"SendGrid Response Status: {response.status_code}")
+                    print(f"SendGrid Response Body: {response.body}")
+                    print("=== EMAIL ENVIADO EXITOSAMENTE (SendGrid API) ===")
+                else:
+                    # Usar SMTP local (desarrollo)
+                    print("Usando SMTP local (desarrollo)...")
+                    email = EmailMessage(subject, message, from_email, [usuario.email])
+                    email.attach(f'{mail_actividad_nombre}.ics', ics_content, 'text/calendar')
+                    result = email.send()
+                    print(f"Resultado del envío: {result}")
+                    print("=== EMAIL ENVIADO EXITOSAMENTE (SMTP) ===")
+                    
+            except Exception as e:
+                # Log del error pero no bloquear la reserva
+                print(f"=== ERROR AL ENVIAR EMAIL ===")
+                print(f"Tipo de error: {type(e).__name__}")
+                print(f"Mensaje de error: {str(e)}")
+                print(f"Traceback completo:\n{traceback.format_exc()}")
+                print("=== FIN ERROR EMAIL ===")
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 

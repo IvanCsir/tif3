@@ -25,8 +25,8 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
             setAlertSeverity('success');
             setAlertOpen(true);
             setTimeout(() => {
-                window.location.reload(); // Refrescar la página después de 5 segundos
-              }, 2000); // Retardo de 5000 milisegundos (5 segundos)
+                window.location.reload(); // Refrescar la página
+              }, 2000);
               console.log(response.data);
               console.log(id_usuario);
         }
