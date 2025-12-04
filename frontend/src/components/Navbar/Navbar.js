@@ -385,8 +385,13 @@ const Navbar = () => {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
+              {pages.map((page, index) => (
+                <MenuItem 
+                  key={page} 
+                  component={Link}
+                  to={index === 0 ? '/actividades' : `/usuario/${localStorage.getItem('usuario_id')}/reservas/`}
+                  onClick={handleCloseNavMenu}
+                >
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
 
