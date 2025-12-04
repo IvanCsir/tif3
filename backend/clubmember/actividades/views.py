@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from accounts.models import DatosUsuarios
 from urllib.parse import urlencode
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, get_connection
 from icalendar import Calendar, Event
 import os
 from django.db.models import OuterRef, Subquery
@@ -297,8 +297,10 @@ class ReservaView(viewsets.ViewSet):
                 print(f"Backend de email: {settings.EMAIL_BACKEND}")
                 print(f"Host de email: {settings.EMAIL_HOST}")
                 print(f"Puerto: {settings.EMAIL_PORT}")
+                print(f"Use TLS: {settings.EMAIL_USE_TLS}")
                 print(f"Usuario de email: {settings.EMAIL_HOST_USER}")
                 print(f"API Key configurada: {'Sí' if os.getenv('SENDGRID_API_KEY') else 'No'}")
+                print(f"Password length: {len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}")
                 print(f"Destinatario: {usuario.email}")
                 
                 subject = 'Reserva exitosa'
@@ -318,8 +320,28 @@ class ReservaView(viewsets.ViewSet):
                 email.attach(f'{mail_actividad_nombre}.ics', ics_content, 'text/calendar')
                 
                 print("Intentando enviar email...")
-                result = email.send()
+                print("Creando conexión SMTP...")
+                
+                # Intentar envío con manejo explícito de conexión
+                from django.core.mail import get_connection
+                connection = get_connection(
+                    backend=settings.EMAIL_BACKEND,
+                    host=settings.EMAIL_HOST,
+                    port=settings.EMAIL_PORT,
+                    username=settings.EMAIL_HOST_USER,
+                    password=settings.EMAIL_HOST_PASSWORD,
+                    use_tls=settings.EMAIL_USE_TLS,
+                    timeout=30  # Timeout de 30 segundos
+                )
+                print("Abriendo conexión...")
+                connection.open()
+                print("Conexión abierta, enviando mensaje...")
+                
+                result = email.send(fail_silently=False)
                 print(f"Resultado del envío: {result}")
+                
+                connection.close()
+                print("Conexión cerrada")
                 print("=== EMAIL ENVIADO EXITOSAMENTE ===")
             except Exception as e:
                 # Log del error pero no bloquear la reserva
