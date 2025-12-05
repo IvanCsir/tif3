@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 import {Button, Box, Grid, Alert} from "@mui/material";
 
 
 const ReservarButton = ({ id_act, id_datos_activity }) => {
+    const navigate = useNavigate();
 
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
@@ -25,7 +27,7 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
             setAlertSeverity('success');
             setAlertOpen(true);
             setTimeout(() => {
-                window.location.reload(); // Refrescar la página
+                navigate(0); // Recargar la ruta actual
               }, 2000);
               console.log(response.data);
               console.log(id_usuario);
