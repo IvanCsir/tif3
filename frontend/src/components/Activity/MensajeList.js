@@ -9,10 +9,14 @@ const MensajeList = () => {
   const [mensajes, setMensajes] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [mensajesNoLeidos, setMensajesNoLeidos] = useState([]);
-  const id_usuario = parseInt(localStorage.getItem('usuario_id'));
+  const id_usuario = parseInt(localStorage.getItem('usuario_id') || '0');
 
 
   useEffect(() => {
+    if (!id_usuario) {
+      return;
+    }
+    
     obtenerMensajes();
 
     //Intervalo para establecer cuánto se demora en llamar a la funcion obtenerMensajes
@@ -22,7 +26,7 @@ const MensajeList = () => {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [id_usuario]);
 
   const obtenerMensajes = async () => {
     try {

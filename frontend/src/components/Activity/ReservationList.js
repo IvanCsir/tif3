@@ -22,9 +22,14 @@ function ReservaList() {
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reservaToDelete, setReservaToDelete] = useState(null);
-  const id_usuario = parseInt(localStorage.getItem('usuario_id'));
+  const id_usuario = parseInt(localStorage.getItem('usuario_id') || '0');
 
   useEffect(() => {
+    if (!id_usuario) {
+      console.error('Usuario no autenticado');
+      return;
+    }
+    
     axios.get(`${API_BASE_URL}/api/activities/activity/${id_usuario}/reservas/`)
       .then(response => {
         setReservas(response.data);
@@ -32,7 +37,7 @@ function ReservaList() {
       .catch(error => {
         console.log(error);
       });
-  },[]);
+  },[id_usuario]);;
 
   const handleOpenDialog = (reservaId) => {
     setReservaToDelete(reservaId);

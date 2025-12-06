@@ -276,11 +276,47 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const [anchorElNotif, setAnchorElNotif] = useState(null); // Nuevo estado para el menú de notificaciones
+  const [anchorElNotif, setAnchorElNotif] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const tipoUsuario = localStorage.getItem('tipo_usuario');
+  // Obtener datos de localStorage de forma segura
+  const getTipoUsuario = () => {
+    try {
+      return localStorage.getItem('tipo_usuario');
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const getUsuarioId = () => {
+    try {
+      return localStorage.getItem('usuario_id');
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const getUsuarioNombre = () => {
+    try {
+      return localStorage.getItem('usuario_nombre') || '';
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const getUsuarioApellido = () => {
+    try {
+      return localStorage.getItem('usuario_apellido') || '';
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const tipoUsuario = getTipoUsuario();
+  const usuarioId = getUsuarioId();
+  const usuarioNombre = getUsuarioNombre();
+  const usuarioApellido = getUsuarioApellido();
   const renderIcons = () => {
     if (tipoUsuario === '1') {
       return (
@@ -321,7 +357,7 @@ const Navbar = () => {
     localStorage.removeItem('usuario_id');
   };
 
-  const isAuthenticated = !!localStorage.getItem('usuario_id');
+  const isAuthenticated = !!getUsuarioId();
 
   // No mostrar la navbar en rutas públicas como login, register y logout
   const publicRoutes = ['/', '/register', '/logout'];
@@ -389,7 +425,7 @@ const Navbar = () => {
                 <MenuItem 
                   key={page} 
                   component={Link}
-                  to={index === 0 ? '/actividades' : `/usuario/${localStorage.getItem('usuario_id')}/reservas/`}
+                  to={index === 0 ? '/actividades' : `/usuario/${usuarioId}/reservas/`}
                   onClick={handleCloseNavMenu}
                 >
                   <Typography textAlign="center">{page}</Typography>
@@ -424,7 +460,7 @@ const Navbar = () => {
               <Button
                 key={index}
                 component={Link}
-                to={index === 0 ? '/actividades' : `/usuario/${localStorage.getItem('usuario_id')}/reservas/`}
+                to={index === 0 ? '/actividades' : `/usuario/${usuarioId}/reservas/`}
                 onClick={handleCloseNavMenu}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
@@ -472,7 +508,7 @@ const Navbar = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title={`${localStorage.getItem('usuario_nombre')} ${localStorage.getItem('usuario_apellido')}`}>
+            <Tooltip title={`${usuarioNombre} ${usuarioApellido}`}>
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <AccountCircleIcon sx={{ color: grey[500], fontSize: 40 }} />
               </IconButton>
@@ -495,7 +531,7 @@ const Navbar = () => {
             >
               <Box sx={{ px: 2, py: 1, borderBottom: '1px solid #e0e0e0' }}>
                 <Typography variant="subtitle1" fontWeight="bold">
-                  {localStorage.getItem('usuario_nombre')} {localStorage.getItem('usuario_apellido')}
+                  {usuarioNombre} {usuarioApellido}
                 </Typography>
               </Box>
               {settings.map((setting, index) => (

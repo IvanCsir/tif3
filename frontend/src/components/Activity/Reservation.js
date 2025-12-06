@@ -12,8 +12,16 @@ const ReservarButton = ({ id_act, id_datos_activity }) => {
     const [alertMessage, setAlertMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('error');
 
-    const id_usuario = parseInt(localStorage.getItem('usuario_id'));
+    const id_usuario = parseInt(localStorage.getItem('usuario_id') || '0');
+    
     const handleReservarClick = () =>  {
+        if (!id_usuario) {
+          setAlertMessage('Error: Usuario no autenticado');
+          setAlertSeverity('error');
+          setAlertOpen(true);
+          return;
+        }
+        
         const usuarioId = id_usuario; // ID del usuario que realizará la reserva
 
         const data = {
