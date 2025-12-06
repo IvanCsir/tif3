@@ -276,6 +276,13 @@ class ReservaView(viewsets.ViewSet):
                 mensaje_lugar = "al aire libre"
             else:
                 mensaje_lugar = "bajo techo"
+            
+            # Formatear fecha en español
+            meses_es = {
+                1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+                7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+            }
+            mail_dia_formateado = f"{mail_dia.day} de {meses_es[mail_dia.month]} de {mail_dia.year}"
             # Crea un objeto Calendar
             cal = Calendar()
 
@@ -346,14 +353,14 @@ class ReservaView(viewsets.ViewSet):
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">📅 Fecha:</span>
-                    <span class="detail-value"><strong>{mail_dia.strftime('%d de %B de %Y') if hasattr(mail_dia, 'strftime') else mail_dia}</strong></span>
+                    <span class="detail-value"><strong>{mail_dia_formateado}</strong></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">🕐 Horario:</span>
                     <span class="detail-value"><strong>{mail_start_time} - {mail_end_time}</strong></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">📍 Ubicación:</span>
+                    <span class="detail-label">📍 Lugar:</span>
                     <span class="detail-value"><strong>{mensaje_lugar}</strong></span>
                 </div>
             </div>
@@ -380,7 +387,7 @@ class ReservaView(viewsets.ViewSet):
 Detalles de la reserva:
 ─────────────────────
 Actividad: {mail_actividad_nombre}
-Fecha: {mail_dia}
+Fecha: {mail_dia_formateado}
 Horario: {mail_start_time} - {mail_end_time}
 Ubicación: {mensaje_lugar}
 
