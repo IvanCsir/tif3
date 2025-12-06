@@ -389,7 +389,7 @@ Detalles de la reserva:
 Actividad: {mail_actividad_nombre}
 Fecha: {mail_dia_formateado}
 Horario: {mail_start_time} - {mail_end_time}
-Ubicación: {mensaje_lugar}
+Lugar: {mensaje_lugar}
 
 Adjunto encontrará un archivo (.ics) que puede utilizar para agregar este evento a su calendario.
 
@@ -441,8 +441,17 @@ Este es un correo automático. Por favor, no responda a este mensaje.
                 else:
                     # Usar SMTP local (desarrollo)
                     print("Usando SMTP local (desarrollo)...")
-                    email = EmailMessage(subject, text_content, from_email, [usuario.email])
+                    from django.core.mail import EmailMultiAlternatives
+                    
+                    email = EmailMultiAlternatives(
+                        subject=subject,
+                        body=text_content,
+                        from_email=from_email,
+                        to=[usuario.email]
+                    )
+                    # Adjuntar versión HTML como alternativa
                     email.attach_alternative(html_content, "text/html")
+                    # Adjuntar archivo ICS
                     email.attach(f'{mail_actividad_nombre}.ics', ics_content, 'text/calendar')
                     result = email.send()
                     print(f"Resultado del envío: {result}")
