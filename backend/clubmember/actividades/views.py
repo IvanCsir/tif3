@@ -331,7 +331,7 @@ class ReservaView(viewsets.ViewSet):
         </div>
         
         <div class="content">
-            <p>Estimado/a <strong>{usuario.first_name if usuario.first_name else 'usuario'}</strong>,</p>
+            <p>Estimado/a <strong>{usuario.nombre if usuario.nombre else 'usuario'}</strong>,</p>
             
             <div class="confirmation-box">
                 <strong>¡Su reserva ha sido confirmada exitosamente!</strong>
@@ -373,7 +373,7 @@ class ReservaView(viewsets.ViewSet):
 """
                 
                 # Contenido en texto plano como fallback
-                text_content = f"""Estimado/a {usuario.first_name if usuario.first_name else 'usuario'},
+                text_content = f"""Estimado/a {usuario.nombre if usuario.nombre else 'usuario'},
 
 ¡Su reserva ha sido confirmada exitosamente!
 
