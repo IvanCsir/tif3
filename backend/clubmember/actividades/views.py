@@ -295,14 +295,103 @@ class ReservaView(viewsets.ViewSet):
             try:
                 print("=== INICIO ENVÍO DE EMAIL ===")
                 
-                subject = 'Reserva exitosa'
-                message = f'Su reserva para la actividad {mail_actividad_nombre} {mensaje_lugar} se ha realizado exitosamente. \n\nDetalles de la reserva:\n'
-                message += f'Fecha: {mail_dia}\n'
-                message += f'Horario: {mail_start_time}hs - {mail_end_time}hs\n'
-                message += f'Puede agregar el evento a su calendario si así lo desea'
-
+                # Datos del email
                 from_email = os.getenv('EMAIL_FROM_ADDRESS', 'i.freiberg@alumno.um.edu.ar')
                 sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
+                
+                # Asunto mejorado
+                subject = f'✓ Reserva confirmada - {mail_actividad_nombre}'
+                
+                # Contenido en HTML profesional
+                html_content = f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; background-color: white; }}
+        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; }}
+        .header h1 {{ margin: 0; font-size: 28px; font-weight: 600; }}
+        .content {{ padding: 30px 20px; }}
+        .confirmation-box {{ background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 4px; }}
+        .details-box {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 4px; border: 1px solid #e0e0e0; }}
+        .detail-item {{ margin: 12px 0; padding: 10px; background-color: white; border-radius: 4px; }}
+        .detail-label {{ font-weight: 600; color: #667eea; display: inline-block; width: 80px; }}
+        .detail-value {{ display: inline-block; }}
+        .footer {{ background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; }}
+        .button {{ display: inline-block; padding: 12px 24px; background-color: #667eea; color: white; text-decoration: none; border-radius: 4px; margin: 15px 0; font-weight: 600; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✓ Reserva Confirmada</h1>
+        </div>
+        
+        <div class="content">
+            <p>Estimado/a <strong>{usuario.first_name if usuario.first_name else 'usuario'}</strong>,</p>
+            
+            <div class="confirmation-box">
+                <strong>¡Su reserva ha sido confirmada exitosamente!</strong>
+            </div>
+            
+            <p>Hemos registrado su reserva para la siguiente actividad:</p>
+            
+            <div class="details-box">
+                <div class="detail-item">
+                    <span class="detail-label">📌 Actividad:</span>
+                    <span class="detail-value"><strong>{mail_actividad_nombre}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📅 Fecha:</span>
+                    <span class="detail-value"><strong>{mail_dia.strftime('%d de %B de %Y') if hasattr(mail_dia, 'strftime') else mail_dia}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">🕐 Horario:</span>
+                    <span class="detail-value"><strong>{mail_start_time} - {mail_end_time}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📍 Ubicación:</span>
+                    <span class="detail-value"><strong>{mensaje_lugar}</strong></span>
+                </div>
+            </div>
+            
+            <p>Adjunto encontrará un archivo <strong>(.ics)</strong> que puede utilizar para agregar este evento directamente a su calendario (Outlook, Google Calendar, Apple Calendar, etc.).</p>
+            
+            <p style="color: #666; font-size: 13px; margin-top: 25px;">Si tiene alguna pregunta sobre su reserva, no dude en contactarnos.</p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0; color: #999;">Este es un correo automático. Por favor, no responda a este mensaje.</p>
+            <p style="margin: 5px 0 0 0; color: #999;">© 2025 Club Member. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+                
+                # Contenido en texto plano como fallback
+                text_content = f"""Estimado/a {usuario.first_name if usuario.first_name else 'usuario'},
+
+¡Su reserva ha sido confirmada exitosamente!
+
+Detalles de la reserva:
+─────────────────────
+Actividad: {mail_actividad_nombre}
+Fecha: {mail_dia}
+Horario: {mail_start_time} - {mail_end_time}
+Ubicación: {mensaje_lugar}
+
+Adjunto encontrará un archivo (.ics) que puede utilizar para agregar este evento a su calendario.
+
+Si tiene alguna pregunta sobre su reserva, no dude en contactarnos.
+
+─────────────────────
+Este es un correo automático. Por favor, no responda a este mensaje.
+© 2025 Club Member. Todos los derechos reservados.
+"""
                 
                 print(f"Destinatario: {usuario.email}")
                 print(f"Remitente: {from_email}")
@@ -322,7 +411,8 @@ class ReservaView(viewsets.ViewSet):
                         from_email=from_email,
                         to_emails=usuario.email,
                         subject=subject,
-                        plain_text_content=message
+                        plain_text_content=text_content,
+                        html_content=html_content
                     )
                     
                     # Adjuntar archivo ICS
@@ -344,7 +434,8 @@ class ReservaView(viewsets.ViewSet):
                 else:
                     # Usar SMTP local (desarrollo)
                     print("Usando SMTP local (desarrollo)...")
-                    email = EmailMessage(subject, message, from_email, [usuario.email])
+                    email = EmailMessage(subject, text_content, from_email, [usuario.email])
+                    email.attach_alternative(html_content, "text/html")
                     email.attach(f'{mail_actividad_nombre}.ics', ics_content, 'text/calendar')
                     result = email.send()
                     print(f"Resultado del envío: {result}")
@@ -357,6 +448,7 @@ class ReservaView(viewsets.ViewSet):
                 print(f"Mensaje de error: {str(e)}")
                 print(f"Traceback completo:\n{traceback.format_exc()}")
                 print("=== FIN ERROR EMAIL ===")
+
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
