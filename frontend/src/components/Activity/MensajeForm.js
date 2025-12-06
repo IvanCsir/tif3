@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Grid, Box, Typography, TextField, Button, Paper, Alert, MenuItem } from '@mui/material';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 
 const MensajeForm = () => {
+  const navigate = useNavigate();
   const [titulo, setTitulo] = useState('');
   const [contenido, setContenido] = useState('');
 
@@ -26,8 +28,8 @@ const MensajeForm = () => {
         setAlertSeverity('success');
         setAlertOpen(true);
         setTimeout(() => {
-          window.location.reload(); // Refrescar la página después de 5 segundos
-        }, 3000); // Retardo de 5000 milisegundos (5 segundos)
+          navigate(0); // Recargar la ruta actual
+        }, 3000);
       })
       .catch((error) => {
         console.error(error);

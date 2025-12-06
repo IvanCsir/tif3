@@ -8,6 +8,7 @@ import Navbar from './components/Navbar/Navbar';
 import ActivityList from './components/Activity/ActivityList';
 import ActivityForm from './components/Activity/ActivityForm';
 import PrivateRoute from './components/PrivateRoute';
+import NotFound from './components/NotFound';
 
 // import SignUp from './components/Users/Register';
 import Login from './components/Users/Login';
@@ -41,9 +42,9 @@ ReactDOM.render(
         <Route path="/usuario/:id_user/reservas/" element={<PrivateRoute><ReservaList /></PrivateRoute>}/>    
         <Route path="/mensaje/obtener_mensaje/" element={<PrivateRoute><MensajeList /></PrivateRoute>}/>
         <Route path="/mensaje/crear_mensaje/" element={<PrivateRoute><MensajeForm /></PrivateRoute>}/>
-
-
-
+        
+        {/* Ruta catch-all para 404 - debe ir al final */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   </BrowserRouter>,
