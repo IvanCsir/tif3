@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'actividades',
     'accounts',
-    'user_profiles'
+    'user_profiles',
+    'ai_recommendations'
 ]
 # CACHES = {
 #     'default': {
@@ -181,7 +182,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
     # 'rest_framework.authentication.SessionAuthentication'
     'rest_framework_simplejwt.authentication.JWTAuthentication'
-
     ]
     
 }

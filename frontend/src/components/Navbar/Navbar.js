@@ -365,7 +365,7 @@ const Navbar = () => {
     return null;
   }
 
-  const pages = ['Actividades', 'Mis Reservas'];
+  const pages = ['Actividades', 'Recomendaciones IA', 'Mis Reservas'];
   const settings = [];
 
   return (
@@ -421,17 +421,22 @@ const Navbar = () => {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page, index) => (
-                <MenuItem 
-                  key={page} 
-                  component={Link}
-                  to={index === 0 ? '/actividades' : `/usuario/${usuarioId}/reservas/`}
-                  onClick={handleCloseNavMenu}
-                >
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
-
-              ))}
+              {pages.map((page, index) => {
+                let route = '/actividades';
+                if (index === 1) route = '/recomendaciones-ia';
+                if (index === 2) route = `/usuario/${usuarioId}/reservas/`;
+                
+                return (
+                  <MenuItem 
+                    key={page} 
+                    component={Link}
+                    to={route}
+                    onClick={handleCloseNavMenu}
+                  >
+                    <Typography textAlign="center">{page}</Typography>
+                  </MenuItem>
+                );
+              })}
               
             </Menu>
           </Box>
@@ -456,17 +461,23 @@ const Navbar = () => {
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map((page, index) => (
-              <Button
-                key={index}
-                component={Link}
-                to={index === 0 ? '/actividades' : `/usuario/${usuarioId}/reservas/`}
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                {page}
-              </Button>
-            ))}
+            {pages.map((page, index) => {
+              let route = '/actividades';
+              if (index === 1) route = '/recomendaciones-ia';
+              if (index === 2) route = `/usuario/${usuarioId}/reservas/`;
+              
+              return (
+                <Button
+                  key={index}
+                  component={Link}
+                  to={route}
+                  onClick={handleCloseNavMenu}
+                  sx={{ my: 2, color: 'white', display: 'block' }}
+                >
+                  {page}
+                </Button>
+              );
+            })}
           </Box>
           <Box >
             <Button sx={{ my: 2, color: 'white', display: 'block' }} to={"/mensaje/crear_mensaje/" } component={Link}>

@@ -24,7 +24,8 @@ urlpatterns = [
         path('api/', include([
         
             path('', include('accounts.urls')),
-            path('activities/', include('actividades.urls'))
+            path('activities/', include('actividades.urls')),
+            path('', include('ai_recommendations.urls'))
         ]))
     ]
     

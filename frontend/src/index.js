@@ -22,6 +22,7 @@ import ReservaList from './components/Activity/ReservationList';
 import Logout from './components/Users/Logout';
 import MensajeList from './components/Activity/MensajeList';
 import MensajeForm from './components/Activity/MensajeForm';
+import AIRecommendations from './components/Activity/AIRecommendations';
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 
 document.title = 'Club Member';
@@ -36,6 +37,7 @@ ReactDOM.render(
         <Route path="/logout" element={<Logout/>}/>
         <Route path="/activity/:id/datos" element={<PrivateRoute><DatosActivityForm /></PrivateRoute>}/>
         <Route path="/actividades" element={<PrivateRoute><ActivityList /></PrivateRoute>}/>
+        <Route path="/recomendaciones-ia" element={<PrivateRoute><AIRecommendations /></PrivateRoute>}/>
         <Route path="/activityForm" element={<PrivateRoute><ActivityForm /></PrivateRoute>}/>
         <Route path="/updateActivity/:id" element={<PrivateRoute><ActivityForm /></PrivateRoute>}/>
         <Route path="/activity/lugares_disponibles/:id/" element={<PrivateRoute><DatosActivityList /></PrivateRoute>}/>
