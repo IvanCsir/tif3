@@ -366,7 +366,9 @@ const Navbar = () => {
   }
 
   const pages = ['Actividades', 'Recomendaciones IA', 'Mis Reservas'];
-  const settings = [];
+  const settings = [
+    { label: 'Mi Perfil', route: '/configurar-perfil' }
+  ];
 
   return (
     <AppBar position="static" sx={{ bgcolor: 'black' }}>
@@ -546,8 +548,13 @@ const Navbar = () => {
                 </Typography>
               </Box>
               {settings.map((setting, index) => (
-                <MenuItem key={index} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
+                <MenuItem 
+                  key={index} 
+                  component={Link}
+                  to={setting.route}
+                  onClick={handleCloseUserMenu}
+                >
+                  <Typography textAlign="center">{setting.label}</Typography>
                 </MenuItem>
               ))}
               <MenuItem onClick={handleLogout}>

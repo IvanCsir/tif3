@@ -13,6 +13,7 @@ import NotFound from './components/NotFound';
 // import SignUp from './components/Users/Register';
 import Login from './components/Users/Login';
 import Register from './components/Users/Register';
+import UserProfile from './components/Users/UserProfile';
 import DatosActivityForm from './components/Activity/DatosActivityForm';
 
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -34,6 +35,7 @@ ReactDOM.render(
         <Route exact path="/" element={<Login />}/>
         {/* <Route path="/login" Component={Login}/> */}
         <Route path="/register" element={<Register />} />
+        <Route path="/configurar-perfil" element={<UserProfile />} />
         <Route path="/logout" element={<Logout/>}/>
         <Route path="/activity/:id/datos" element={<PrivateRoute><DatosActivityForm /></PrivateRoute>}/>
         <Route path="/actividades" element={<PrivateRoute><ActivityList /></PrivateRoute>}/>

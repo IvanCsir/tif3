@@ -39,7 +39,7 @@ export default function Login() {
         },
         { headers: { "Content-Type": "application/json" } }
       )
-      .then(function (response) {
+      .then(async function (response) {
         if (response.status === 200) {
           localStorage.setItem('usuario_nombre', response.data.nombre)
           localStorage.setItem('usuario_apellido', response.data.apellido)
@@ -47,10 +47,46 @@ export default function Login() {
           localStorage.setItem('tipo_usuario', response.data.tipo)
           const tipoUsuario = localStorage.getItem('tipo_usuario');
 
+          // Si es admin, ir directo al formulario de actividades
           if (tipoUsuario === "1") {
             navigate('/activityForm');
-          } else {
-            navigate('/actividades')
+            return;
+          }
+
+          // Para usuarios normales, verificar si ya configuró sus preferencias
+          try {
+            const prefsResponse = await axios.get(
+              `${API_BASE_URL}/api/usuarios/preferencias/get_preferencias/?user_id=${response.data.id}`,
+              { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (prefsResponse.data.success && prefsResponse.data.data) {
+              const prefs = prefsResponse.data.data;
+              
+              // Verificar si al menos uno de los campos de preferencias está configurado
+              const hasPreferences = prefs.edad || 
+                                   prefs.nivel_experiencia || 
+                                   prefs.preferencias_tipo || 
+                                   prefs.preferencia_formato || 
+                                   prefs.objetivos || 
+                                   prefs.limitaciones;
+
+              if (!hasPreferences) {
+                // Primera vez o nunca configuró preferencias
+                localStorage.setItem('first_time_setup', 'true');
+                navigate('/configurar-perfil');
+              } else {
+                // Ya tiene preferencias configuradas
+                navigate('/actividades');
+              }
+            } else {
+              // Si hay error al obtener preferencias, ir a actividades
+              navigate('/actividades');
+            }
+          } catch (error) {
+            // Si hay error en la petición de preferencias, ir a actividades
+            console.error('Error al verificar preferencias:', error);
+            navigate('/actividades');
           }
         }
       })
