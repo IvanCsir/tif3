@@ -136,11 +136,20 @@ const Register = () => {
           headers: { "Content-Type": "application/json" },
         })
         .then((response) => {
-          setAlertMessage('Usuario creado con éxito');
+          // Guardar información del usuario registrado
+          if (response.data.id) {
+            localStorage.setItem("usuario_id", response.data.id);
+            localStorage.setItem("usuario_nombre", nombre);
+            localStorage.setItem("usuario_apellido", apellido);
+            localStorage.setItem("tipo_usuario", "2");
+            localStorage.setItem("first_time_setup", "true"); // Flag para saber que es primera vez
+          }
+          
+          setAlertMessage('Usuario creado con éxito. Redirigiendo a configuración de perfil...');
           setAlertSeverity('success');
           setAlertOpen(true);
           setTimeout(() => {
-            navigate("/");
+            navigate("/configurar-perfil");
           
           }, 2000);
         })

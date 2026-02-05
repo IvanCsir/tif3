@@ -28,15 +28,80 @@ class AIRecommendationsView(viewsets.ViewSet):
         history = []
         for reserva in reservas:
             activity = reserva.datos_activity.id_act
+            datos_activity = reserva.datos_activity
             history.append({
                 'nombre': activity.name,
                 'descripcion': activity.description,
                 'aire_libre': activity.aire_libre,
                 'id': activity.id,
-                'fecha': reserva.fecha_reserva.strftime('%Y-%m-%d')
+                'fecha': reserva.fecha_reserva.strftime('%Y-%m-%d'),
+                'hora_inicio': datos_activity.start_time.strftime('%H:%M'),
+                'hora_fin': datos_activity.end_time.strftime('%H:%M'),
+                'dia_semana': datos_activity.day.strftime('%A') if datos_activity.day else None
             })
         
         return history
+
+    def _analyze_user_time_preferences(self, user_history):
+        """Analiza las preferencias horarias del usuario basándose en su historial"""
+        if not user_history:
+            return {}
+        
+        from collections import Counter
+        
+        # Clasificar horarios
+        morning = 0  # 6:00 - 11:59
+        afternoon = 0  # 12:00 - 17:59
+        evening = 0  # 18:00 - 23:59
+        
+        week_days = []
+        durations = []
+        
+        for reserva in user_history:
+            if reserva.get('hora_inicio'):
+                hour = int(reserva['hora_inicio'].split(':')[0])
+                
+                if 6 <= hour < 12:
+                    morning += 1
+                elif 12 <= hour < 18:
+                    afternoon += 1
+                elif 18 <= hour < 24:
+                    evening += 1
+                
+                # Calcular duración
+                if reserva.get('hora_fin'):
+                    start_hour, start_min = map(int, reserva['hora_inicio'].split(':'))
+                    end_hour, end_min = map(int, reserva['hora_fin'].split(':'))
+                    duration = (end_hour * 60 + end_min) - (start_hour * 60 + start_min)
+                    durations.append(duration)
+            
+            if reserva.get('dia_semana'):
+                week_days.append(reserva['dia_semana'])
+        
+        # Determinar preferencia de horario
+        time_pref = None
+        time_counts = {'mañana': morning, 'tarde': afternoon, 'noche': evening}
+        if time_counts:
+            max_time = max(time_counts.items(), key=lambda x: x[1])
+            if max_time[1] > 0:
+                time_pref = max_time[0]
+        
+        # Determinar días preferidos
+        day_counter = Counter(week_days)
+        top_days = [day for day, count in day_counter.most_common(2)]
+        
+        # Duración promedio
+        avg_duration = sum(durations) / len(durations) if durations else None
+        
+        return {
+            'time_preference': time_pref,
+            'time_distribution': time_counts,
+            'preferred_days': top_days,
+            'avg_duration': avg_duration,
+            'total_morning': morning,
+            'total_afternoon': afternoon,
+            'total_evening': evening
+        }
 
     def _get_available_activities(self):
         """Obtiene todas las actividades disponibles"""
@@ -60,6 +125,35 @@ class AIRecommendationsView(viewsets.ViewSet):
                 })
         
         return available
+
+    def _get_available_schedules(self, activity_id, limit=5):
+        """Obtiene los próximos horarios disponibles para una actividad"""
+        from datetime import datetime
+        
+        schedules = DatosActivity.objects.filter(
+            id_act_id=activity_id,
+            day__gte=datetime.now().date(),
+            capacity__gt=0
+        ).order_by('day', 'start_time')[:limit]
+        
+        result = []
+        for schedule in schedules:
+            dias_es = {
+                'Monday': 'Lun', 'Tuesday': 'Mar', 'Wednesday': 'Mié',
+                'Thursday': 'Jue', 'Friday': 'Vie', 'Saturday': 'Sáb', 'Sunday': 'Dom'
+            }
+            dia_nombre = dias_es.get(schedule.day.strftime('%A'), schedule.day.strftime('%A'))
+            
+            result.append({
+                'id': schedule.id,
+                'dia': schedule.day.strftime('%Y-%m-%d'),
+                'dia_texto': f"{dia_nombre} {schedule.day.strftime('%d/%m')}",
+                'hora_inicio': schedule.start_time.strftime('%H:%M'),
+                'hora_fin': schedule.end_time.strftime('%H:%M'),
+                'capacidad': schedule.capacity
+            })
+        
+        return result
 
     def _extract_tags(self, text):
         """Extrae etiquetas simples basadas en palabras clave para detectar actividades similares"""
@@ -116,21 +210,26 @@ class AIRecommendationsView(viewsets.ViewSet):
         for h in user_history:
             tags_h = self._extract_tags(h['nombre'] + ' ' + h['descripcion'])
             if candidate_tags & tags_h:
-                return f"Similar a {h['nombre']} que ya realizaste"
+                return f"ya probaste {h['nombre']}"
         return None
 
-    def _generate_recommendations(self, user_history, available_activities, user_name):
+    def _generate_recommendations(self, user_history, available_activities, datos_usuario):
         """Genera recomendaciones usando Gemini API via REST; devuelve (result, used_ai: bool, ai_error: str|None)"""
         api_key = os.getenv('GEMINI_API_KEY')
         
         if not api_key or api_key == 'tu-api-key-de-gemini-aqui':
             # Fallback: recomendaciones basadas en reglas simples
-            return self._fallback_recommendations(user_history, available_activities), False, 'API key ausente'
+            return self._fallback_recommendations(user_history, available_activities, datos_usuario), False, 'API key ausente'
         
         try:
+            user_name = datos_usuario.nombre
+            
+            # Analizar preferencias horarias
+            time_prefs = self._analyze_user_time_preferences(user_history)
+            
             # Construir el prompt
             history_text = "\n".join([
-                f"- {h['nombre']} ({h['descripcion']}) - {'Al aire libre' if h['aire_libre'] else 'Bajo techo'}"
+                f"- {h['nombre']} ({h['descripcion']}) - {'Al aire libre' if h['aire_libre'] else 'Bajo techo'} - Horario: {h.get('hora_inicio', 'N/A')}"
                 for h in user_history[:10]  # Últimas 10 para no saturar el prompt
             ])
             
@@ -139,20 +238,56 @@ class AIRecommendationsView(viewsets.ViewSet):
                 for a in available_activities
             ])
             
+            # Construir información del perfil del usuario
+            perfil_text = ""
+            if datos_usuario.edad:
+                perfil_text += f"Edad: {datos_usuario.edad} años\n"
+            if datos_usuario.nivel_experiencia:
+                perfil_text += f"Nivel de experiencia: {datos_usuario.get_nivel_experiencia_display()}\n"
+            if datos_usuario.preferencias_tipo:
+                prefs = [p.strip() for p in datos_usuario.preferencias_tipo.split(',')]
+                perfil_text += f"Preferencias de actividad: {', '.join(prefs)}\n"
+            if datos_usuario.preferencia_formato:
+                perfil_text += f"Formato preferido: {datos_usuario.get_preferencia_formato_display()}\n"
+            if datos_usuario.objetivos:
+                perfil_text += f"Objetivos: {datos_usuario.objetivos}\n"
+            if datos_usuario.limitaciones:
+                perfil_text += f"⚠️ Limitaciones/Precauciones: {datos_usuario.limitaciones}\n"
+            
+            # Agregar información de preferencias horarias
+            horarios_text = ""
+            if time_prefs.get('time_preference'):
+                horarios_text += f"Horario preferido: {time_prefs['time_preference']}\n"
+            if time_prefs.get('preferred_days'):
+                dias_es = {'Monday': 'lunes', 'Tuesday': 'martes', 'Wednesday': 'miércoles', 
+                          'Thursday': 'jueves', 'Friday': 'viernes', 'Saturday': 'sábado', 'Sunday': 'domingo'}
+                dias_preferidos = [dias_es.get(day, day) for day in time_prefs['preferred_days']]
+                horarios_text += f"Días que suele reservar: {', '.join(dias_preferidos)}\n"
+            if time_prefs.get('avg_duration'):
+                horarios_text += f"Duración promedio de actividades: {int(time_prefs['avg_duration'])} minutos\n"
+            
             prompt = f"""Eres un experto en recomendaciones deportivas para un club. Respondes en español de forma clara y motivadora.
 
 Usuario: {user_name}
-
+{perfil_text if perfil_text else ""}
+{horarios_text if horarios_text else ""}
 Historial de actividades del usuario:
 {history_text if history_text else "El usuario aún no ha realizado reservas."}
 
 Actividades disponibles:
 {activities_text}
 
-Basándote en el historial del usuario, recomienda entre 1 y 3 actividades que sean REALMENTE relevantes.
+Basándote en el perfil, historial, preferencias y PATRONES HORARIOS del usuario, recomienda entre 1 y 3 actividades que sean REALMENTE relevantes.
 
 REGLAS IMPORTANTES:
-- Solo recomienda actividades que tengan relación lógica con el historial del usuario
+- PRIORIZA las preferencias de tipo de actividad del usuario (musculación, cardio, mente-cuerpo, raqueta, acuático, funcional)
+- Respeta el formato preferido (individual vs grupal) si está especificado
+- Considera la edad y nivel de experiencia para ajustar la intensidad
+- Si hay limitaciones físicas, EVITA actividades que puedan ser contraindicadas
+- Alinea las recomendaciones con los objetivos del usuario
+- IMPORTANTE: Considera los horarios habituales del usuario (mañana/tarde/noche) y menciónalos en la recomendación si es relevante
+- Si el usuario suele reservar en ciertos días de la semana, menciona que hay disponibilidad en esos días
+- Solo recomienda actividades que tengan relación lógica con el historial y preferencias
 - Si una actividad tiene yoga, recomienda actividades mente-cuerpo (meditación, pilates, stretching)
 - Si tiene deportes de raqueta (tenis, paddle), recomienda otros deportes de raqueta o similares
 - Si tiene gimnasio/crossfit, recomienda entrenamiento funcional, musculación, HIIT
@@ -162,15 +297,24 @@ REGLAS IMPORTANTES:
 
 Para cada recomendación, proporciona:
 1. El ID de la actividad (número)
-2. Una explicación breve (máximo 2 líneas) de por qué se recomienda
+2. Una explicación NATURAL y conversacional (máximo 2-3 líneas) dirigida a {user_name}, como si fueras su entrenador personal
+
+IMPORTANTE: Usa los nombres REALES de las actividades del historial que aparecen arriba (como Yoga, Crossfit, Paddle, etc.) cuando hagas referencia a lo que ya hizo el usuario.
+
+FORMATO DE LA EXPLICACIÓN: Habla de forma natural y cercana. Ejemplos de estilo:
+- "{user_name}, veo que siempre entrenas por la mañana, entonces esta actividad es perfecta porque..."
+- "Como ya probaste Yoga, {user_name}, creo que Pilates te va a encantar porque trabaja el core de forma similar"
+- "Vi que hiciste mucho Crossfit, así que te sugiero esto para complementar tu entrenamiento funcional"
+- "{user_name}, noto que te gusta el Paddle, entonces este otro deporte de raqueta te puede interesar"
+- "Como buscas mejorar resistencia y ya probaste Running, {user_name}, esta actividad es ideal"
 
 IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni markdown.
 
 Formato de respuesta:
 {{
   "recomendaciones": [
-    {{"id": 1, "razon": "explicación aquí"}},
-    {{"id": 2, "razon": "explicación aquí"}}
+    {{"id": 1, "razon": "explicación personalizada aquí"}},
+    {{"id": 2, "razon": "explicación personalizada aquí"}}
   ]
 }}"""
 
@@ -193,13 +337,13 @@ Formato de respuesta:
             if response.status_code != 200:
                 error_msg = f"API error {response.status_code}: {response.text}"
                 print(f"Error al generar recomendaciones con IA: {error_msg}")
-                return self._fallback_recommendations(user_history, available_activities), False, error_msg
+                return self._fallback_recommendations(user_history, available_activities, datos_usuario), False, error_msg
             
             data = response.json()
             content = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
             
             if not content:
-                return self._fallback_recommendations(user_history, available_activities), False, "Respuesta vacía de la API"
+                return self._fallback_recommendations(user_history, available_activities, datos_usuario), False, "Respuesta vacía de la API"
             
             # Intentar extraer JSON si está envuelto en markdown
             if "```json" in content:
@@ -223,12 +367,16 @@ Formato de respuesta:
                 activity_id = rec.get('id')
                 activity = next((a for a in available_activities if a['id'] == activity_id), None)
                 if activity:
+                    # Obtener horarios disponibles
+                    schedules = self._get_available_schedules(activity['id'], limit=5)
+                    
                     result.append({
                         'id': activity['id'],
                         'nombre': activity['nombre'],
                         'descripcion': activity['descripcion'],
                         'aire_libre': activity['aire_libre'],
-                        'razon': rec.get('razon', '')
+                        'razon': rec.get('razon', ''),
+                        'horarios_disponibles': schedules
                     })
             
             return result, True, None
@@ -236,12 +384,15 @@ Formato de respuesta:
         except Exception as e:
             print(f"Error al generar recomendaciones con IA: {str(e)}")
             # Fallback en caso de error
-            return self._fallback_recommendations(user_history, available_activities), False, str(e)
+            return self._fallback_recommendations(user_history, available_activities, datos_usuario), False, str(e)
 
-    def _fallback_recommendations(self, user_history, available_activities):
+    def _fallback_recommendations(self, user_history, available_activities, datos_usuario):
         """Recomendaciones basadas en reglas cuando la IA no está disponible"""
         if not available_activities:
             return []
+        
+        user_name = datos_usuario.nombre
+        time_prefs = self._analyze_user_time_preferences(user_history)
         
         if user_history:
             # Calcular score de similitud por deporte y preferencia indoor/outdoor
@@ -260,6 +411,12 @@ Formato de respuesta:
             recommendations = []
             prefers_outdoor = sum(1 for h in user_history if h['aire_libre']) > (len(user_history) / 2)
             
+            # Obtener horario preferido para las razones
+            horario_texto = ""
+            if time_prefs.get('time_preference'):
+                horario_map = {'mañana': 'la mañana', 'tarde': 'la tarde', 'noche': 'la noche'}
+                horario_texto = horario_map.get(time_prefs['time_preference'], '')
+            
             for score, rec in scored:
                 if len(recommendations) >= 3:
                     break
@@ -270,13 +427,35 @@ Formato de respuesta:
                     reason = self._reason_from_similarity(user_history, candidate_tags)
                     
                     if reason:
-                        rec['razon'] = reason
+                        # Personalizar con nombre y horario de forma natural
+                        if horario_texto:
+                            rec['razon'] = f"{user_name}, veo que {reason.lower()}, entonces te recomiendo esto porque además hay horarios en {horario_texto} como prefieres"
+                        else:
+                            rec['razon'] = f"{user_name}, como {reason.lower()}, creo que esto te va a gustar"
+                        # Agregar horarios disponibles
+                        rec['horarios_disponibles'] = self._get_available_schedules(rec['id'], limit=5)
                         recommendations.append(rec)
                     elif candidate_tags and score >= 2:  # Solo si hay tags compartidos con buen score
-                        rec['razon'] = "Similar a actividades que ya practicas"
+                        if horario_texto:
+                            rec['razon'] = f"{user_name}, noto que te gustan actividades similares y vi que siempre reservas en {horario_texto}, así que esto es perfecto"
+                        else:
+                            rec['razon'] = f"{user_name}, es similar a lo que ya practicas, entonces creo que te va a encantar"
+                        # Agregar horarios disponibles
+                        rec['horarios_disponibles'] = self._get_available_schedules(rec['id'], limit=5)
                         recommendations.append(rec)
                     elif score >= MIN_SCORE and rec['aire_libre'] == prefers_outdoor:
-                        rec['razon'] = f"Basado en tu preferencia por actividades {'al aire libre' if prefers_outdoor else 'bajo techo'}"
+                        if prefers_outdoor:
+                            if horario_texto:
+                                rec['razon'] = f"{user_name}, como veo que prefieres actividades al aire libre y siempre entrenas en {horario_texto}, esto es ideal para ti"
+                            else:
+                                rec['razon'] = f"{user_name}, noto que te gusta entrenar al aire libre, así que te sugiero probar esto"
+                        else:
+                            if horario_texto:
+                                rec['razon'] = f"{user_name}, vi que prefieres entrenar bajo techo y hay disponibilidad en {horario_texto} como te gusta"
+                            else:
+                                rec['razon'] = f"{user_name}, como prefieres actividades bajo techo, esto te puede interesar"
+                        # Agregar horarios disponibles
+                        rec['horarios_disponibles'] = self._get_available_schedules(rec['id'], limit=5)
                         recommendations.append(rec)
             
             # No forzar a completar 3 recomendaciones si no hay suficiente relevancia
@@ -347,7 +526,7 @@ Formato de respuesta:
             recommendations, used_ai, ai_error = self._generate_recommendations(
                 user_history,
                 available_activities,
-                f"{datos_usuario.nombre} {datos_usuario.apellido}"
+                datos_usuario
             )
             
             return Response({

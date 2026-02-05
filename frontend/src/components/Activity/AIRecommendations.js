@@ -15,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import OutdoorGrillIcon from "@mui/icons-material/OutdoorGrill";
 import HomeIcon from "@mui/icons-material/Home";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import PeopleIcon from "@mui/icons-material/People";
 import API_BASE_URL from "../../config/api";
 
 const AIRecommendations = () => {
@@ -213,13 +216,72 @@ const AIRecommendations = () => {
                     </Typography>
                   </Box>
 
+                  {/* Horarios disponibles */}
+                  {rec.horarios_disponibles && rec.horarios_disponibles.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ mb: 1, fontWeight: "bold", display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <CalendarTodayIcon sx={{ fontSize: "1rem" }} />
+                        Próximos horarios:
+                      </Typography>
+                      <Box sx={{ maxHeight: 200, overflowY: "auto" }}>
+                        {rec.horarios_disponibles.slice(0, 5).map((horario) => (
+                          <Box
+                            key={horario.id}
+                            sx={{
+                              p: 1,
+                              mb: 1,
+                              bgcolor: "#fff",
+                              border: "1px solid #e0e0e0",
+                              borderRadius: 1,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              transition: "all 0.2s",
+                              "&:hover": {
+                                bgcolor: "#f5f5f5",
+                                borderColor: "#1976d2",
+                              },
+                            }}
+                          >
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: "600", color: "#1976d2" }}>
+                                {horario.dia_texto}
+                              </Typography>
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.3 }}>
+                                <AccessTimeIcon sx={{ fontSize: "0.875rem", color: "text.secondary" }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  {horario.hora_inicio} - {horario.hora_fin}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
+                              <PeopleIcon sx={{ fontSize: "1rem", color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32" }} />
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: "bold",
+                                  color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32",
+                                }}
+                              >
+                                {horario.capacidad}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
                   <Button
                     variant="contained"
                     fullWidth
                     onClick={() => handleViewActivity(rec.id)}
                     sx={{ mt: "auto" }}
                   >
-                    Ver horarios disponibles
+                    Ver todos los horarios
                   </Button>
                 </CardContent>
               </Card>

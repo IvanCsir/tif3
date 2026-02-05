@@ -97,3 +97,88 @@ class TipoUsuariosViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UsuarioPreferenciasViewSet(viewsets.ViewSet):
+    """
+    ViewSet para gestionar las preferencias de los usuarios
+    """
+    
+    @action(detail=False, methods=['get'])
+    def get_preferencias(self, request):
+        """
+        GET /api/usuarios/preferencias/get_preferencias/?user_id=X
+        Obtiene las preferencias del usuario
+        """
+        user_id = request.query_params.get('user_id') or request.headers.get('X-User-Id')
+        
+        if not user_id:
+            return Response({
+                'success': False,
+                'message': 'Se requiere user_id'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            datos_usuario = DatosUsuarios.objects.get(pk=user_id)
+            serializer = UsuarioSerializer(datos_usuario)
+            return Response({
+                'success': True,
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except DatosUsuarios.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    @action(detail=False, methods=['post'])
+    def update_preferencias(self, request):
+        """
+        POST /api/usuarios/preferencias/update_preferencias/
+        Actualiza las preferencias del usuario
+        Campos: user_id, edad, nivel_experiencia, preferencias_tipo, preferencia_formato, objetivos, limitaciones
+        """
+        user_id = request.data.get('user_id')
+        
+        if not user_id:
+            return Response({
+                'success': False,
+                'message': 'Se requiere user_id'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            datos_usuario = DatosUsuarios.objects.get(pk=user_id)
+            
+            # Actualizar solo los campos que vienen en el request
+            if 'edad' in request.data:
+                datos_usuario.edad = request.data['edad']
+            if 'nivel_experiencia' in request.data:
+                datos_usuario.nivel_experiencia = request.data['nivel_experiencia']
+            if 'preferencias_tipo' in request.data:
+                datos_usuario.preferencias_tipo = request.data['preferencias_tipo']
+            if 'preferencia_formato' in request.data:
+                datos_usuario.preferencia_formato = request.data['preferencia_formato']
+            if 'objetivos' in request.data:
+                datos_usuario.objetivos = request.data['objetivos']
+            if 'limitaciones' in request.data:
+                datos_usuario.limitaciones = request.data['limitaciones']
+            
+            datos_usuario.save()
+            
+            serializer = UsuarioSerializer(datos_usuario)
+            return Response({
+                'success': True,
+                'message': 'Preferencias actualizadas correctamente',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except DatosUsuarios.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
