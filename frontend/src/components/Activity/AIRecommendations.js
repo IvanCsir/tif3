@@ -10,6 +10,8 @@ import {
   Chip,
   Grid,
   Container,
+  Snackbar,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -18,6 +20,8 @@ import HomeIcon from "@mui/icons-material/Home";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PeopleIcon from "@mui/icons-material/People";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import CloseIcon from "@mui/icons-material/Close";
 import API_BASE_URL from "../../config/api";
 
 const AIRecommendations = () => {
@@ -28,6 +32,12 @@ const AIRecommendations = () => {
   const [hasHistory, setHasHistory] = useState(false);
   const [usedAI, setUsedAI] = useState(false);
   const [provider, setProvider] = useState("fallback");
+  const [reservingSlot, setReservingSlot] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
     fetchRecommendations();
@@ -84,6 +94,77 @@ const AIRecommendations = () => {
 
   const handleViewActivity = (activityId) => {
     navigate(`/activity/lugares_disponibles/${activityId}/`);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleReserveSlot = async (activityId, datosActivityId, activityName) => {
+    try {
+      setReservingSlot(datosActivityId);
+
+      const usuarioId = localStorage.getItem("usuario_id");
+      if (!usuarioId) {
+        setSnackbar({
+          open: true,
+          message: "Debes iniciar sesión para reservar",
+          severity: "error",
+        });
+        setReservingSlot(null);
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/activities/activity/${activityId}/reservar/${datosActivityId}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            usuario: usuarioId,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Actualizar capacidad localmente sin recargar toda la página
+        setRecommendations((prevRecs) =>
+          prevRecs.map((rec) => ({
+            ...rec,
+            horarios_disponibles: rec.horarios_disponibles.map((horario) =>
+              horario.id === datosActivityId
+                ? { ...horario, capacidad: horario.capacidad - 1 }
+                : horario
+            ),
+          }))
+        );
+
+        setSnackbar({
+          open: true,
+          message: `¡Reserva confirmada para ${activityName}!`,
+          severity: "success",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: data.message || "Error al realizar la reserva",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Error making reservation:", err);
+      setSnackbar({
+        open: true,
+        message: "Error al realizar la reserva. Intenta de nuevo.",
+        severity: "error",
+      });
+    } finally {
+      setReservingSlot(null);
+    }
   };
 
   if (loading) {
@@ -239,6 +320,7 @@ const AIRecommendations = () => {
                               display: "flex",
                               justifyContent: "space-between",
                               alignItems: "center",
+                              gap: 1,
                               transition: "all 0.2s",
                               "&:hover": {
                                 bgcolor: "#f5f5f5",
@@ -246,7 +328,7 @@ const AIRecommendations = () => {
                               },
                             }}
                           >
-                            <Box sx={{ flex: 1 }}>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2" sx={{ fontWeight: "600", color: "#1976d2" }}>
                                 {horario.dia_texto}
                               </Typography>
@@ -255,20 +337,35 @@ const AIRecommendations = () => {
                                 <Typography variant="caption" color="text.secondary">
                                   {horario.hora_inicio} - {horario.hora_fin}
                                 </Typography>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.3, ml: 1 }}>
+                                  <PeopleIcon sx={{ fontSize: "0.875rem", color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32" }} />
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: "bold",
+                                      color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32",
+                                    }}
+                                  >
+                                    {horario.capacidad}
+                                  </Typography>
+                                </Box>
                               </Box>
                             </Box>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
-                              <PeopleIcon sx={{ fontSize: "1rem", color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32" }} />
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  fontWeight: "bold",
-                                  color: horario.capacidad <= 3 ? "#d32f2f" : "#2e7d32",
-                                }}
-                              >
-                                {horario.capacidad}
-                              </Typography>
-                            </Box>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={reservingSlot === horario.id ? <CircularProgress size={16} color="inherit" /> : <EventAvailableIcon />}
+                              onClick={() => handleReserveSlot(rec.id, horario.id, rec.nombre)}
+                              disabled={reservingSlot === horario.id || horario.capacidad <= 0}
+                              sx={{
+                                minWidth: '90px',
+                                fontSize: '0.75rem',
+                                py: 0.5,
+                                px: 1,
+                              }}
+                            >
+                              {reservingSlot === horario.id ? "..." : "Reservar"}
+                            </Button>
                           </Box>
                         ))}
                       </Box>
@@ -299,6 +396,32 @@ const AIRecommendations = () => {
           Actualizar recomendaciones
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+          action={
+            <IconButton
+              size="small"
+              aria-label="close"
+              color="inherit"
+              onClick={handleCloseSnackbar}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

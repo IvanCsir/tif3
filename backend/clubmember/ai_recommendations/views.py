@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from accounts.models import DatosUsuarios
 from actividades.models import Reserva, Activity, DatosActivity
 from datetime import datetime, timedelta
+from django.db import transaction
+from django.db.models import F
 import os
 import re
 import json
