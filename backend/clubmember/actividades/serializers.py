@@ -9,9 +9,24 @@ class DatosCreateActivitySeralizer(serializers.ModelSerializer):
         model = DatosActivity
         fields = ('day','start_time', 'end_time','capacity', 'temperatura_max','temperatura_min', 'condiciones', "icon")
 
+class UsuarioReservaSerializer(serializers.ModelSerializer):
+    """Serializer para mostrar información básica del usuario en las reservas (solo para admin)"""
+    class Meta:
+        model = DatosUsuarios
+        fields = ('id', 'nombre', 'apellido', 'email')
+
+class ReservaDetalleSerializer(serializers.ModelSerializer):
+    """Serializer para mostrar reservas con información del usuario (solo para admin)"""
+    usuario = UsuarioReservaSerializer()
+    
+    class Meta:
+        model = Reserva
+        fields = ('id', 'usuario', 'fecha_reserva')
+
 class DatosActivitySerializer(serializers.ModelSerializer):
     start_time = serializers.TimeField(format='%H:%M')
     end_time = serializers.TimeField(format='%H:%M')
+    reservas = serializers.SerializerMethodField()
     #Creo un nuevo campo en el serializer
     # time_display = serializers.SerializerMethodField()
 
@@ -21,6 +36,17 @@ class DatosActivitySerializer(serializers.ModelSerializer):
     # def get_time_display(self, obj):
     #     horarios_dict = dict(horarios)
     #     return horarios_dict.get(obj.time)
+    
+    def get_reservas(self, obj):
+        """Solo incluye reservas si el usuario es admin"""
+        request = self.context.get('request')
+        if request:
+            # Obtener tipo_usuario de los parámetros GET o del contexto
+            tipo_usuario = request.GET.get('tipo_usuario', None)
+            if tipo_usuario == '1':
+                reservas = Reserva.objects.filter(datos_activity=obj).select_related('usuario')
+                return ReservaDetalleSerializer(reservas, many=True).data
+        return None
 
     class Meta:
         model= DatosActivity

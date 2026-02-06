@@ -2,10 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import API_BASE_URL from '../../config/api';
-import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar} from "@mui/material";
+import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar, List, ListItem, ListItemText, IconButton, Collapse, Dialog, DialogTitle, DialogContent, DialogActions, Button, Divider, Alert} from "@mui/material";
 import ReservarButton from "./Reservation"
-import { green } from '@mui/material/colors';
+import { green, red } from '@mui/material/colors';
 import CircularProgress from '@mui/material/CircularProgress';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PeopleIcon from '@mui/icons-material/People';
 
 
 
@@ -26,14 +30,64 @@ function DatosActivityList() {
   const [selectedTimeRange, setSelectedTimeRange] = useState('all');
   // const uniqueDates = [...new Set(datos.map((dato) => dato.day))];
   const [isLoading, setIsLoading] = useState(true);
+  const [tipoUsuario, setTipoUsuario] = useState(localStorage.getItem('tipo_usuario'));
+  const [expandedCards, setExpandedCards] = useState({});
+  const [openCancelDialog, setOpenCancelDialog] = useState(false);
+  const [reservaToCancel, setReservaToCancel] = useState(null);
+  const [cancelMessage, setCancelMessage] = useState('');
 
   const getIconPath = (iconName) => {
     return require(`./icons/${iconName}.png`);
   };
 
-  useEffect(() => {
-    setIsLoading(true); // Establecer isLoading en true antes de la solicitud
-    fetch(`${API_BASE_URL}/api/activities/activity/${id}/datos_activity/`)
+  const toggleExpandCard = (datoId) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [datoId]: !prev[datoId]
+    }));
+  };
+
+  const handleOpenCancelDialog = (reserva) => {
+    setReservaToCancel(reserva);
+    setOpenCancelDialog(true);
+  };
+
+  const handleCloseCancelDialog = () => {
+    setOpenCancelDialog(false);
+    setReservaToCancel(null);
+    setCancelMessage('');
+  };
+
+  const handleCancelReserva = async () => {
+    if (!reservaToCancel) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/activities/reserva/${reservaToCancel.id}/cancelar-admin/?tipo_usuario=${tipoUsuario}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCancelMessage(`Reserva de ${data.usuario} cancelada exitosamente`);
+        // Recargar los datos
+        fetchDatosActivity();
+        setTimeout(() => handleCloseCancelDialog(), 2000);
+      } else {
+        setCancelMessage(`Error: ${data.error || 'No se pudo cancelar la reserva'}`);
+      }
+    } catch (error) {
+      console.error('Error al cancelar reserva:', error);
+      setCancelMessage('Error al conectar con el servidor');
+    }
+  };
+
+  const fetchDatosActivity = () => {
+    setIsLoading(true);
+    fetch(`${API_BASE_URL}/api/activities/activity/${id}/datos_activity/?tipo_usuario=${tipoUsuario}`)
       .then((response) => response.json())
       .then((data) => {
           data.sort((a, b) => {
@@ -64,6 +118,10 @@ function DatosActivityList() {
         setDatos(dataWithInitialCapacity);
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchDatosActivity();
     fetch(`${API_BASE_URL}/api/activities/activity/${id}`)
       .then((response) => response.json())
       .then((data) => {
@@ -273,6 +331,80 @@ function DatosActivityList() {
                       <Typography variant="body1" gutterBottom></Typography>
                     </>
                   )}
+                
+                {/* Mostrar reservas solo para admin */}
+                {tipoUsuario === '1' && dato.reservas && dato.reservas.length > 0 && (
+                  <>
+                    <Divider sx={{ my: 0.25 }} />
+                    <Box sx={{ mt: 0.25 }}>
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+                          py: 0.5,
+                          px: 0.5,
+                          borderRadius: 1
+                        }}
+                        onClick={() => toggleExpandCard(dato.id)}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <PeopleIcon color="primary" fontSize="small" />
+                          <Typography variant="body2" fontWeight="bold">
+                            Reservas: {dato.reservas.length}
+                          </Typography>
+                        </Box>
+                        <IconButton size="small" sx={{ p: 0.5 }}>
+                          {expandedCards[dato.id] ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                        </IconButton>
+                      </Box>
+                      
+                      <Collapse in={expandedCards[dato.id]} timeout="auto" unmountOnExit>
+                        <List dense sx={{ mt: 0.5, py: 0 }}>
+                          {dato.reservas.map((reserva) => (
+                            <ListItem
+                              key={reserva.id}
+                              sx={{
+                                bgcolor: 'rgba(102, 126, 234, 0.08)',
+                                mb: 0.5,
+                                borderRadius: 1,
+                                py: 0.5,
+                                px: 1,
+                                '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.15)' }
+                              }}
+                              secondaryAction={
+                                <IconButton 
+                                  edge="end" 
+                                  aria-label="delete"
+                                  size="small"
+                                  onClick={() => handleOpenCancelDialog(reserva)}
+                                  sx={{ color: red[500], '&:hover': { bgcolor: red[50] }, p: 0.5 }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              }
+                            >
+                              <ListItemText
+                                primary={`${reserva.usuario.nombre} ${reserva.usuario.apellido}`}
+                                secondary={reserva.usuario.email}
+                                primaryTypographyProps={{ 
+                                  fontWeight: 'medium',
+                                  fontSize: '0.875rem'
+                                }}
+                                secondaryTypographyProps={{
+                                  fontSize: '0.75rem'
+                                }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Collapse>
+                    </Box>
+                  </>
+                )}
+
                 <ReservarButton
                   id_act={id}
                   id_datos_activity={dato.id}
@@ -288,6 +420,36 @@ function DatosActivityList() {
           </Box>
         )}
       </Grid>
+
+      {/* Dialog de confirmación para cancelar reserva */}
+      <Dialog open={openCancelDialog} onClose={handleCloseCancelDialog}>
+        <DialogTitle>Confirmar Cancelación</DialogTitle>
+        <DialogContent>
+          {cancelMessage ? (
+            <Alert severity={cancelMessage.includes('Error') ? 'error' : 'success'}>
+              {cancelMessage}
+            </Alert>
+          ) : reservaToCancel ? (
+            <Typography>
+              ¿Estás seguro de que deseas cancelar la reserva de{' '}
+              <strong>
+                {reservaToCancel.usuario.nombre} {reservaToCancel.usuario.apellido}
+              </strong>
+              ?
+            </Typography>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCancelDialog} color="primary">
+            Cerrar
+          </Button>
+          {!cancelMessage && (
+            <Button onClick={handleCancelReserva} color="error" variant="contained">
+              Cancelar Reserva
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
