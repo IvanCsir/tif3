@@ -2,14 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import API_BASE_URL from '../../config/api';
-import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar, List, ListItem, ListItemText, IconButton, Collapse, Dialog, DialogTitle, DialogContent, DialogActions, Button, Divider, Alert} from "@mui/material";
+import { Typography, Paper, Grid, Box, FormControl, Select, MenuItem, InputLabel, Avatar, List, ListItem, ListItemText, IconButton, Collapse, Dialog, DialogTitle, DialogContent, DialogActions, Button, Divider, Alert, TextField, Tooltip} from "@mui/material";
 import ReservarButton from "./Reservation"
-import { green, red } from '@mui/material/colors';
+import { green, red, orange } from '@mui/material/colors';
 import CircularProgress from '@mui/material/CircularProgress';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import PeopleIcon from '@mui/icons-material/People';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 
 
@@ -35,6 +37,13 @@ function DatosActivityList() {
   const [openCancelDialog, setOpenCancelDialog] = useState(false);
   const [reservaToCancel, setReservaToCancel] = useState(null);
   const [cancelMessage, setCancelMessage] = useState('');
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [datoToEdit, setDatoToEdit] = useState(null);
+  const [newCapacity, setNewCapacity] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [datoToDelete, setDatoToDelete] = useState(null);
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   const getIconPath = (iconName) => {
     return require(`./icons/${iconName}.png`);
@@ -56,6 +65,87 @@ function DatosActivityList() {
     setOpenCancelDialog(false);
     setReservaToCancel(null);
     setCancelMessage('');
+  };
+
+  const handleOpenEditDialog = (dato) => {
+    setDatoToEdit(dato);
+    // Calcular la capacidad total actual (reservas + lugares disponibles)
+    const capacidadTotal = (dato.reservas ? dato.reservas.length : 0) + dato.capacity;
+    setNewCapacity(capacidadTotal);
+    setOpenEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setDatoToEdit(null);
+    setNewCapacity('');
+    setEditMessage('');
+  };
+
+  const handleUpdateCapacity = async () => {
+    if (!datoToEdit) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/activities/datos_activity/actualizar-disponibilidad/${datoToEdit.id}/?tipo_usuario=${tipoUsuario}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ capacity: newCapacity }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setEditMessage('Disponibilidad actualizada exitosamente');
+        // Recargar los datos
+        fetchDatosActivity();
+        setTimeout(() => handleCloseEditDialog(), 2000);
+      } else {
+        setEditMessage(`Error: ${data.error || 'No se pudo actualizar la disponibilidad'}`);
+      }
+    } catch (error) {
+      console.error('Error al actualizar disponibilidad:', error);
+      setEditMessage('Error al conectar con el servidor');
+    }
+  };
+
+  const handleOpenDeleteDialog = (dato) => {
+    setDatoToDelete(dato);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setDatoToDelete(null);
+    setDeleteMessage('');
+  };
+
+  const handleDeleteDisponibilidad = async () => {
+    if (!datoToDelete) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/activities/datos_activity/${datoToDelete.id}/eliminar/?tipo_usuario=${tipoUsuario}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setDeleteMessage('Disponibilidad eliminada exitosamente');
+        // Recargar los datos
+        fetchDatosActivity();
+        setTimeout(() => handleCloseDeleteDialog(), 2000);
+      } else {
+        setDeleteMessage(`Error: ${data.error || 'No se pudo eliminar la disponibilidad'}`);
+      }
+    } catch (error) {
+      console.error('Error al eliminar disponibilidad:', error);
+      setDeleteMessage('Error al conectar con el servidor');
+    }
   };
 
   const handleCancelReserva = async () => {
@@ -284,13 +374,6 @@ function DatosActivityList() {
           filteredDatos.map((dato) => (
             <Grid item xs={12} md={6} lg={4} key={dato.id}>
               <Paper className="card card-body card-secondary" elevation={24} sx={{ p: 2, margin: "5px" }}>
-                {/* <Typography
-                  variant="h5"
-                  gutterBottom
-                  sx={{ textTransform: "capitalize" }}
-                >
-                  {formatDate(dato.day)} ({dato.day}) {<Avatar sx={{ bgcolor: green[400] }}> {dato.capacity}</Avatar>}
-                </Typography> */}
                 <Typography
                   variant="h5"
                   gutterBottom
@@ -420,10 +503,43 @@ function DatosActivityList() {
                   </>
                 )}
 
-                <ReservarButton
-                  id_act={id}
-                  id_datos_activity={dato.id}
-                ></ReservarButton>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                  <ReservarButton
+                    id_act={id}
+                    id_datos_activity={dato.id}
+                  ></ReservarButton>
+                  
+                  {tipoUsuario === '1' && (
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Tooltip title="Editar capacidad">
+                        <IconButton 
+                          size="medium" 
+                          onClick={() => handleOpenEditDialog(dato)}
+                          sx={{ 
+                            color: '#667eea',
+                            bgcolor: 'rgba(102, 126, 234, 0.08)',
+                            '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.2)' }
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar disponibilidad">
+                        <IconButton 
+                          size="medium" 
+                          onClick={() => handleOpenDeleteDialog(dato)}
+                          sx={{ 
+                            color: red[500],
+                            bgcolor: red[50],
+                            '&:hover': { bgcolor: red[100] }
+                          }}
+                        >
+                          <DeleteForeverIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </Box>
               </Paper>
             </Grid>
           ))
@@ -461,6 +577,135 @@ function DatosActivityList() {
           {!cancelMessage && (
             <Button onClick={handleCancelReserva} color="error" variant="contained">
               Cancelar Reserva
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para editar disponibilidad (solo admin) */}
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Editar Capacidad del Horario</DialogTitle>
+        <DialogContent>
+          {editMessage ? (
+            <Alert severity={editMessage.includes('Error') ? 'error' : 'success'}>
+              {editMessage}
+            </Alert>
+          ) : datoToEdit ? (
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="body1" gutterBottom>
+                <strong>Actividad:</strong> {nombreActividad}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Fecha:</strong> {formatDateWithDay(datoToEdit.day)}
+              </Typography>
+              <Typography variant="body1" gutterBottom sx={{ mb: 2 }}>
+                <strong>Horario:</strong> {datoToEdit.start_time} - {datoToEdit.end_time}
+              </Typography>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1, mb: 2 }}>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  <strong>Reservas confirmadas:</strong> {datoToEdit.reservas ? datoToEdit.reservas.length : 0}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  <strong>Lugares disponibles actualmente:</strong> {datoToEdit.capacity}
+                </Typography>
+                <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                  <strong>Capacidad total actual:</strong> {(datoToEdit.reservas ? datoToEdit.reservas.length : 0) + datoToEdit.capacity}
+                </Typography>
+              </Box>
+              
+              <TextField
+                margin="dense"
+                label="Nueva Capacidad Total"
+                type="number"
+                fullWidth
+                value={newCapacity}
+                onChange={(e) => setNewCapacity(e.target.value)}
+                inputProps={{ min: datoToEdit.reservas ? datoToEdit.reservas.length : 0 }}
+                sx={{ mt: 2 }}
+                helperText={`Ingrese la capacidad total (mínimo ${datoToEdit.reservas ? datoToEdit.reservas.length : 0} por las reservas existentes)`}
+              />
+              
+              {newCapacity && !isNaN(newCapacity) && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <Typography variant="body2">
+                    <strong>Resultado:</strong> {newCapacity - (datoToEdit.reservas ? datoToEdit.reservas.length : 0)} lugares quedarán disponibles para nuevas reservas.
+                  </Typography>
+                </Alert>
+              )}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog} color="primary">
+            Cancelar
+          </Button>
+          {!editMessage && (
+            <Button 
+              onClick={handleUpdateCapacity} 
+              color="primary" 
+              variant="contained"
+              disabled={!newCapacity || newCapacity < (datoToEdit?.reservas ? datoToEdit.reservas.length : 0)}
+            >
+              Actualizar Capacidad
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para eliminar disponibilidad (solo admin) */}
+      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Eliminar Disponibilidad</DialogTitle>
+        <DialogContent>
+          {deleteMessage ? (
+            <Alert severity={deleteMessage.includes('Error') ? 'error' : 'success'}>
+              {deleteMessage}
+            </Alert>
+          ) : datoToDelete ? (
+            <Box sx={{ pt: 2 }}>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                </Typography>
+              </Alert>
+              <Typography variant="body1" gutterBottom>
+                ¿Estás seguro de que deseas eliminar esta disponibilidad?
+              </Typography>
+              <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1, mt: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  <strong>Actividad:</strong> {nombreActividad}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  <strong>Fecha:</strong> {formatDateWithDay(datoToDelete.day)}
+                </Typography>
+                <Typography variant="body2" gutterBottom>
+                  <strong>Horario:</strong> {datoToDelete.start_time} - {datoToDelete.end_time}
+                </Typography>
+                {datoToDelete.reservas && datoToDelete.reservas.length > 0 && (
+                  <Alert severity="error" sx={{ mt: 1 }}>
+                    <Typography variant="body2">
+                      <strong>Hay {datoToDelete.reservas.length} reserva(s) confirmada(s)</strong> que serán canceladas.
+                    </Typography>
+                  </Alert>
+                )}
+              </Box>
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color="primary">
+            Cancelar
+          </Button>
+          {!deleteMessage && (
+            <Button 
+              onClick={handleDeleteDisponibilidad} 
+              color="error" 
+              variant="contained"
+              startIcon={<DeleteForeverIcon />}
+            >
+              Eliminar Definitivamente
             </Button>
           )}
         </DialogActions>
