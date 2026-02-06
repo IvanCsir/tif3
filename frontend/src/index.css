@@ -51,3 +51,234 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Estilos específicos para dispositivos móviles */
+@media only screen and (max-width: 768px) {
+  /* Prevenir scroll horizontal */
+  body {
+    overflow-x: hidden;
+  }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
+  /* Asegurar que el contenedor principal no cause overflow */
+  .row {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+  
+  /* Hacer que las tarjetas ocupen todo el ancho en móvil */
+  .col-md-4 {
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  
+  /* Sobrescribir el comportamiento del Grid de Material-UI en móvil */
+  /* Solo para el Grid item padre (la tarjeta completa) */
+  .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-4 {
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+  
+  /* Mantener el layout xs={8} para el título */
+  .card-body .MuiGrid-container > .MuiGrid-item.MuiGrid-grid-xs-8 {
+    max-width: 66.666667% !important;
+    flex-basis: 66.666667% !important;
+  }
+  
+  /* Mantener el layout xs={4} solo para el contenedor de iconos */
+  .card-body .MuiGrid-container > .MuiGrid-item.MuiGrid-grid-xs-4:has(.MuiIconButton-root) {
+    max-width: 33.333333% !important;
+    flex-basis: 33.333333% !important;
+  }
+  
+  /* Los Grid items sin xs o con otras proporciones deben ocupar 100% */
+  .card-body .MuiGrid-container > .MuiGrid-item:not(.MuiGrid-grid-xs-8):not(.MuiGrid-grid-xs-4) {
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+  
+  /* Ajustar el espaciado de las tarjetas */
+  .card {
+    margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Asegurar que las Cards de Material-UI se ajusten */
+  .MuiCard-root {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+  
+  /* Asegurar que el contenido de la tarjeta se ajuste */
+  .card-body {
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  /* Ajustar tipografía para móvil */
+  .card-title {
+    font-size: 1.1rem;
+    word-wrap: break-word;
+  }
+  
+  .card-text {
+    font-size: 0.9rem;
+    word-wrap: break-word;
+  }
+  
+  /* Asegurar que los botones se ajusten */
+  .btn,
+  .MuiButton-root {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  /* Ajustar el contenedor del Grid de Material-UI */
+  .MuiGrid-container {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* Ajustar los iconos de acción en móvil */
+  .MuiIconButton-root {
+    padding: 6px !important;
+    margin: 0 2px !important;
+  }
+  
+  .MuiIconButton-root svg {
+    font-size: 1.3rem !important;
+  }
+  
+  /* Ajustar el contenedor de iconos para que estén a la altura del título */
+  .MuiGrid-item.MuiGrid-grid-xs-4:has(.MuiIconButton-root) {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start !important;
+    padding-top: 8px !important;
+  }
+  
+  /* Forzar alineación del container */
+  .card-body > .MuiGrid-container {
+    align-items: flex-start !important;
+  }
+  
+  /* Asegurar que el título esté en la parte superior */
+  .MuiGrid-item.MuiGrid-grid-xs-8 {
+    padding-right: 4px !important;
+  }
+}
+
+/* Para pantallas muy pequeñas (smartphones en portrait) */
+@media only screen and (max-width: 480px) {
+  .card-body {
+    padding: 10px;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
+  
+  .card-text {
+    font-size: 0.85rem;
+  }
+  
+  /* Hacer los iconos aún más compactos en pantallas muy pequeñas */
+  .MuiIconButton-root {
+    padding: 4px !important;
+    margin: 0 1px !important;
+  }
+  
+  .MuiIconButton-root svg {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Estilos específicos para las recomendaciones de IA en móvil */
+@media only screen and (max-width: 768px) {
+  /* Ajustar el Container de Material-UI */
+  .MuiContainer-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  /* Ajustar las Cards de recomendaciones */
+  .MuiCard-root .MuiCardContent-root {
+    padding: 12px !important;
+  }
+  
+  /* Ajustar chips y badges */
+  .MuiChip-root {
+    font-size: 0.7rem !important;
+    height: 24px !important;
+  }
+  
+  .MuiChip-icon {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Ajustar los contenedores de horarios */
+  .MuiBox-root {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Hacer que los botones de reservar sean más compactos */
+  .MuiButton-root.MuiButton-sizeSmall {
+    min-width: 70px !important;
+    font-size: 0.7rem !important;
+    padding: 4px 6px !important;
+  }
+  
+  /* Ajustar tipografía en las cards */
+  .MuiTypography-h6 {
+    font-size: 1rem !important;
+  }
+  
+  .MuiTypography-body2 {
+    font-size: 0.8rem !important;
+  }
+  
+  .MuiTypography-caption {
+    font-size: 0.7rem !important;
+  }
+  
+  /* Ajustar el Grid de las recomendaciones */
+  .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12 {
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+  
+  /* Prevenir overflow en los horarios */
+  .MuiBox-root:has(.MuiButton-root.MuiButton-sizeSmall) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  /* Ajustar las reservas en móvil */
+  .MuiPaper-root.card {
+    margin: 5px 0 !important;
+    width: 100%;
+  }
+  
+  /* Centrar el contenido del Grid en móvil */
+  .MuiGrid-root.MuiGrid-container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Asegurar que los Grid items de reservas ocupen el ancho completo */
+  .MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12 {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
