@@ -24,12 +24,14 @@ import Logout from './components/Users/Logout';
 import MensajeList from './components/Activity/MensajeList';
 import MensajeForm from './components/Activity/MensajeForm';
 import AIRecommendations from './components/Activity/AIRecommendations';
+import RecommendationsWidget from './components/Activity/RecommendationsWidget';
 // const root = ReactDOM.createRoot(document.getElementById('root'));
 
 document.title = 'Club Member';
 ReactDOM.render(
   <BrowserRouter>
   <Navbar></Navbar>
+  <RecommendationsWidget />
     <div className="container my-4">
       <Routes>
         <Route exact path="/" element={<Login />}/>
