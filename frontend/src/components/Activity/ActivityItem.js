@@ -25,7 +25,13 @@ const ActivityItem = ({ activity, listactivities}) => {
           <React.Fragment>
             <Tooltip title="Eliminar actividad">
               <IconButton
-                sx={{ "&:hover": { color: "red" } }}
+                sx={{ 
+                  color: "#f44336",
+                  "&:hover": { 
+                    color: "#d32f2f",
+                    bgcolor: "rgba(244, 67, 54, 0.08)"
+                  } 
+                }}
                 onClick={() => activity.id && handleDelete(activity.id)}
               >
                 <DeleteIcon />
@@ -33,14 +39,29 @@ const ActivityItem = ({ activity, listactivities}) => {
             </Tooltip>
             <Tooltip title="Editar nombre">
               <IconButton
-                sx={{ "&:hover": { color: "green" } }}
+                sx={{ 
+                  color: "#667eea",
+                  "&:hover": { 
+                    color: "#5568d3",
+                    bgcolor: "rgba(102, 126, 234, 0.08)"
+                  } 
+                }}
                 onClick={() => navigate(`/updateActivity/${activity.id}`)}
               >
                 <EditIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Cargar horarios">
-              <IconButton onClick={() => navigate(`/activity/${activity.id}/datos`)}>
+              <IconButton 
+                sx={{ 
+                  color: "#ff9800",
+                  "&:hover": { 
+                    color: "#f57c00",
+                    bgcolor: "rgba(255, 152, 0, 0.08)"
+                  } 
+                }}
+                onClick={() => navigate(`/activity/${activity.id}/datos`)}
+              >
                 <HourglassEmptyIcon></HourglassEmptyIcon>
               </IconButton>
             </Tooltip>

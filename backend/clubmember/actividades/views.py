@@ -241,6 +241,92 @@ class DatosActivityView(viewsets.ViewSet):
         serializer = DatosActivitySerializer(datos_activity_list, many=True, context={'request': request})
         return Response(serializer.data)
 
+    @action(detail=False, methods=['patch'], url_path='actualizar-disponibilidad/(?P<id_datos_activity>[^/.]+)')
+    def actualizar_disponibilidad(self, request, id_datos_activity=None):
+        """Permite a los administradores actualizar la disponibilidad (capacity) de un horario"""
+        # Verificar que el usuario es administrador
+        tipo_usuario = request.GET.get('tipo_usuario', None)
+        if tipo_usuario != '1':
+            return Response({'error': 'No tiene permisos para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Obtener el DatosActivity
+        datos_activity = get_object_or_404(DatosActivity, id=id_datos_activity)
+        
+        # Obtener la nueva capacidad del request
+        nueva_capacidad = request.data.get('capacity')
+        
+        if nueva_capacidad is None:
+            return Response({'error': 'Debe proporcionar la nueva capacidad'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            nueva_capacidad = int(nueva_capacidad)
+            if nueva_capacidad < 0:
+                return Response({'error': 'La capacidad no puede ser negativa'}, status=status.HTTP_400_BAD_REQUEST)
+        except (ValueError, TypeError):
+            return Response({'error': 'La capacidad debe ser un número válido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar que no haya más reservas que la nueva capacidad
+        reservas_actuales = Reserva.objects.filter(datos_activity=datos_activity).count()
+        lugares_disponibles_nuevos = nueva_capacidad - reservas_actuales
+        if lugares_disponibles_nuevos < 0:
+            return Response({
+                'error': f'La capacidad debe ser al menos {reservas_actuales} (reservas actuales)'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Actualizar la capacidad (establecer lugares disponibles considerando las reservas)
+        datos_activity.capacity = lugares_disponibles_nuevos
+        datos_activity.save()
+        
+        serializer = DatosActivitySerializer(datos_activity, context={'request': request})
+        return Response({
+            'message': 'Disponibilidad actualizada exitosamente',
+            'datos_activity': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['delete'])
+    def eliminar_disponibilidad(self, request, pk=None):
+        """Permite a los administradores eliminar una disponibilidad (DatosActivity) completa"""
+        # Verificar que el usuario es administrador
+        tipo_usuario = request.GET.get('tipo_usuario', None)
+        if tipo_usuario != '1':
+            return Response({'error': 'No tiene permisos para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Obtener el DatosActivity
+        datos_activity = get_object_or_404(DatosActivity, id=pk)
+        
+        # Verificar si hay reservas asociadas
+        reservas = Reserva.objects.filter(datos_activity=datos_activity)
+        cantidad_reservas = reservas.count()
+        
+        # Eliminar todas las reservas asociadas primero (si hay)
+        if cantidad_reservas > 0:
+            with transaction.atomic():
+                # Guardar información de usuarios afectados para notificación (opcional)
+                usuarios_afectados = [reserva.usuario for reserva in reservas]
+                
+                # Eliminar reservas
+                reservas.delete()
+                
+                # Eliminar el DatosActivity
+                activity_info = f"{datos_activity.id_act.name} - {datos_activity.day} {datos_activity.start_time}-{datos_activity.end_time}"
+                datos_activity.delete()
+                
+                return Response({
+                    'message': f'Disponibilidad eliminada exitosamente. Se cancelaron {cantidad_reservas} reserva(s).',
+                    'reservas_canceladas': cantidad_reservas,
+                    'actividad': activity_info
+                }, status=status.HTTP_200_OK)
+        else:
+            # No hay reservas, eliminar directamente
+            activity_info = f"{datos_activity.id_act.name} - {datos_activity.day} {datos_activity.start_time}-{datos_activity.end_time}"
+            datos_activity.delete()
+            
+            return Response({
+                'message': 'Disponibilidad eliminada exitosamente',
+                'reservas_canceladas': 0,
+                'actividad': activity_info
+            }, status=status.HTTP_200_OK)
+
 class ReservaView(viewsets.ViewSet):
     @action(detail=True, methods=['post'])
     def reservar(self, request, id_act=None, id_datos_activity=None):
