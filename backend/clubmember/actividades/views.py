@@ -237,7 +237,8 @@ class DatosActivityView(viewsets.ViewSet):
         #Convierto la query en una lista para tenes una lista de objetos de datos_activity
         datos_activity_list = list(queryset)
         datos_activity_list = self.obtener_datos_climaticos(datos_activity_list)
-        serializer = DatosActivitySerializer(datos_activity_list, many=True)
+        # Pasar el request en el contexto para que el serializer pueda verificar si es admin
+        serializer = DatosActivitySerializer(datos_activity_list, many=True, context={'request': request})
         return Response(serializer.data)
 
 class ReservaView(viewsets.ViewSet):
@@ -490,6 +491,33 @@ Este es un correo automático. Por favor, no responda a este mensaje.
                 reserva.delete()
 
             return Response({'message': 'Reserva cancelada exitosamente'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['delete'])
+    def cancelar_reserva_admin(self, request, id_reserva=None):
+        """Endpoint para que el admin cancele reservas de cualquier usuario"""
+        try:
+            # Verificar que el usuario sea admin desde el parámetro
+            tipo_usuario = request.GET.get('tipo_usuario', None)
+            if tipo_usuario != '1':
+                return Response({'error': 'No tienes permisos para realizar esta acción'}, status=status.HTTP_403_FORBIDDEN)
+            
+            reserva = get_object_or_404(Reserva, id=id_reserva)
+            datos_activity = reserva.datos_activity
+            usuario_reserva = reserva.usuario
+            
+            with transaction.atomic():
+                # Incrementar la capacidad disponible
+                datos_activity.capacity = F('capacity') + 1
+                datos_activity.save()
+                # Eliminar la reserva
+                reserva.delete()
+
+            return Response({
+                'message': 'Reserva cancelada exitosamente por el administrador',
+                'usuario': f"{usuario_reserva.nombre} {usuario_reserva.apellido}"
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

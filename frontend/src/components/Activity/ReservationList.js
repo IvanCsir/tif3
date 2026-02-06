@@ -122,7 +122,9 @@ function ReservaList() {
                   {reserva.activity_name} - {reserva.activity_lugar}
                 </Typography>
                 
-                <Typography> Día: {reserva.datos_activity.day}</Typography>
+                <Typography> 
+                  <strong>{reserva.day_name}</strong>, {reserva.formatted_date}
+                </Typography>
                 
                 <Typography>
                   {" "}

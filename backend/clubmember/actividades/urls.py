@@ -9,6 +9,7 @@ urlpatterns = [
     path('activity/<int:id_act>/reservar/<int:id_datos_activity>/', ReservaView.as_view({'post': 'reservar'}), name='reservar'),
     path('activity/<int:id_user>/reservas/', ReservaView.as_view({'get':'reservas_por_usuario'}), name="reservas_por_usuario"),
     path('reserva/<int:id_reserva>/cancelar/', ReservaView.as_view({'delete': 'cancelar_reserva'}), name='cancelar_reserva'),
+    path('reserva/<int:id_reserva>/cancelar-admin/', ReservaView.as_view({'delete': 'cancelar_reserva_admin'}), name='cancelar_reserva_admin'),
     path('mensaje/crear_mensaje/', MensajeView.as_view({'post': 'crear_mensaje'}), name='crear_mensaje'),
     path('mensaje/<int:usuario_id>/obtener_mensajes/', MensajeView.as_view({'get': 'obtener_mensajes'}), name='obtener_mensajes'),
     path('mensaje/<int:usuario_id>/marcar_leidos/', MensajeView.as_view({'put': 'marcar_leidos'}), name='marcar_leidos'),

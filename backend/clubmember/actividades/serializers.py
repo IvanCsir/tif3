@@ -9,9 +9,24 @@ class DatosCreateActivitySeralizer(serializers.ModelSerializer):
         model = DatosActivity
         fields = ('day','start_time', 'end_time','capacity', 'temperatura_max','temperatura_min', 'condiciones', "icon")
 
+class UsuarioReservaSerializer(serializers.ModelSerializer):
+    """Serializer para mostrar información básica del usuario en las reservas (solo para admin)"""
+    class Meta:
+        model = DatosUsuarios
+        fields = ('id', 'nombre', 'apellido', 'email')
+
+class ReservaDetalleSerializer(serializers.ModelSerializer):
+    """Serializer para mostrar reservas con información del usuario (solo para admin)"""
+    usuario = UsuarioReservaSerializer()
+    
+    class Meta:
+        model = Reserva
+        fields = ('id', 'usuario', 'fecha_reserva')
+
 class DatosActivitySerializer(serializers.ModelSerializer):
     start_time = serializers.TimeField(format='%H:%M')
     end_time = serializers.TimeField(format='%H:%M')
+    reservas = serializers.SerializerMethodField()
     #Creo un nuevo campo en el serializer
     # time_display = serializers.SerializerMethodField()
 
@@ -21,6 +36,17 @@ class DatosActivitySerializer(serializers.ModelSerializer):
     # def get_time_display(self, obj):
     #     horarios_dict = dict(horarios)
     #     return horarios_dict.get(obj.time)
+    
+    def get_reservas(self, obj):
+        """Solo incluye reservas si el usuario es admin"""
+        request = self.context.get('request')
+        if request:
+            # Obtener tipo_usuario de los parámetros GET o del contexto
+            tipo_usuario = request.GET.get('tipo_usuario', None)
+            if tipo_usuario == '1':
+                reservas = Reserva.objects.filter(datos_activity=obj).select_related('usuario')
+                return ReservaDetalleSerializer(reservas, many=True).data
+        return None
 
     class Meta:
         model= DatosActivity
@@ -43,10 +69,12 @@ class TraerReservaSerializer(serializers.ModelSerializer):
     #Agrego estos dos campos
     activity_name = serializers.SerializerMethodField()
     activity_lugar = serializers.SerializerMethodField()
+    day_name = serializers.SerializerMethodField()
+    formatted_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Reserva
-        fields = ('id', 'usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar")
+        fields = ('id', 'usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar", 'day_name', 'formatted_date')
         read_only_fields = ('usuario',)
 
     def get_activity_name(self, obj):
@@ -58,6 +86,29 @@ class TraerReservaSerializer(serializers.ModelSerializer):
             return "AIRE LIBRE"
         else:
             return "TECHADO"
+    
+    def get_day_name(self, obj):
+        """Retorna el nombre del día en español"""
+        dias_semana = {
+            0: 'Lunes',
+            1: 'Martes',
+            2: 'Miércoles',
+            3: 'Jueves',
+            4: 'Viernes',
+            5: 'Sábado',
+            6: 'Domingo'
+        }
+        return dias_semana[obj.datos_activity.day.weekday()]
+    
+    def get_formatted_date(self, obj):
+        """Retorna la fecha formateada en español"""
+        meses = {
+            1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
+            5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
+            9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+        }
+        day = obj.datos_activity.day
+        return f"{day.day} de {meses[day.month]} de {day.year}"
 
 class MensajeSerializer(serializers.ModelSerializer):
     class Meta:
