@@ -69,10 +69,12 @@ class TraerReservaSerializer(serializers.ModelSerializer):
     #Agrego estos dos campos
     activity_name = serializers.SerializerMethodField()
     activity_lugar = serializers.SerializerMethodField()
+    day_name = serializers.SerializerMethodField()
+    formatted_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Reserva
-        fields = ('id', 'usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar")
+        fields = ('id', 'usuario', 'datos_activity', 'fecha_reserva', 'activity_name', "activity_lugar", 'day_name', 'formatted_date')
         read_only_fields = ('usuario',)
 
     def get_activity_name(self, obj):
@@ -84,6 +86,29 @@ class TraerReservaSerializer(serializers.ModelSerializer):
             return "AIRE LIBRE"
         else:
             return "TECHADO"
+    
+    def get_day_name(self, obj):
+        """Retorna el nombre del día en español"""
+        dias_semana = {
+            0: 'Lunes',
+            1: 'Martes',
+            2: 'Miércoles',
+            3: 'Jueves',
+            4: 'Viernes',
+            5: 'Sábado',
+            6: 'Domingo'
+        }
+        return dias_semana[obj.datos_activity.day.weekday()]
+    
+    def get_formatted_date(self, obj):
+        """Retorna la fecha formateada en español"""
+        meses = {
+            1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
+            5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
+            9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+        }
+        day = obj.datos_activity.day
+        return f"{day.day} de {meses[day.month]} de {day.year}"
 
 class MensajeSerializer(serializers.ModelSerializer):
     class Meta:

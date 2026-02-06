@@ -190,6 +190,21 @@ function DatosActivityList() {
     return formattedDate;
   };
 
+  // Función para formatear la fecha completa con día y fecha
+  const formatDateWithDay = (fecha) => {
+    const date = new Date(fecha + 'T00:00:00-03:00');
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                   'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    
+    const diaSemana = diasSemana[date.getDay()];
+    const dia = date.getDate();
+    const mes = meses[date.getMonth()];
+    const año = date.getFullYear();
+    
+    return `${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}, ${dia} de ${mes} de ${año}`;
+  };
+
   //Lo que hago acá es que en el form control id=select-day-label no me salga
   // varias veces la misma fecha si hay varios datos activity y que no me muestre
   //fechas pasadas en el form control
@@ -236,7 +251,7 @@ function DatosActivityList() {
                 <MenuItem value="all">Todos</MenuItem>
                 {uniqueDates.map((date) => (
                   <MenuItem key={date} value={date}>
-                    {date}
+                    {formatDate(date)} - {date}
                   </MenuItem>
                 ))}
               </Select>
