@@ -507,12 +507,180 @@ Este es un correo automático. Por favor, no responda a este mensaje.
             datos_activity = reserva.datos_activity
             usuario_reserva = reserva.usuario
             
+            # Guardar información antes de eliminar la reserva
+            actividad_nombre = datos_activity.id_act.name
+            actividad_dia = datos_activity.day
+            actividad_start_time = datos_activity.start_time
+            actividad_end_time = datos_activity.end_time
+            actividad_aire_libre = datos_activity.id_act.aire_libre
+            
+            # Formatear fecha en español
+            meses_es = {
+                1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+                7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+            }
+            dia_formateado = f"{actividad_dia.day} de {meses_es[actividad_dia.month]} de {actividad_dia.year}"
+            mensaje_lugar = "al aire libre" if actividad_aire_libre else "bajo techo"
+            
             with transaction.atomic():
                 # Incrementar la capacidad disponible
                 datos_activity.capacity = F('capacity') + 1
                 datos_activity.save()
+                
+                # Crear notificación interna SOLO para el usuario afectado
+                Mensaje.objects.create(
+                    usuario=usuario_reserva,
+                    titulo=f"Reserva cancelada - {actividad_nombre}",
+                    contenido=f"Su reserva para {actividad_nombre} ({mensaje_lugar}) el día {dia_formateado} de {actividad_start_time} a {actividad_end_time} ha sido cancelada por el administrador."
+                )
+                
                 # Eliminar la reserva
                 reserva.delete()
+            
+            # Enviar email de notificación
+            try:
+                print("=== INICIO ENVÍO DE EMAIL DE CANCELACIÓN ===")
+                
+                from_email = os.getenv('EMAIL_FROM_ADDRESS', 'i.freiberg@alumno.um.edu.ar')
+                sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
+                
+                subject = f'⚠️ Reserva cancelada - {actividad_nombre}'
+                
+                # Contenido en HTML
+                html_content = f"""
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; background-color: white; }}
+        .header {{ background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: white; padding: 30px 20px; text-align: center; }}
+        .header h1 {{ margin: 0; font-size: 28px; font-weight: 600; }}
+        .content {{ padding: 30px 20px; }}
+        .warning-box {{ background-color: #fff3cd; border-left: 4px solid #f44336; padding: 15px; margin: 20px 0; border-radius: 4px; }}
+        .details-box {{ background-color: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 4px; border: 1px solid #e0e0e0; }}
+        .detail-item {{ margin: 12px 0; padding: 10px; background-color: white; border-radius: 4px; }}
+        .detail-label {{ font-weight: 600; color: #f44336; display: inline-block; width: 80px; }}
+        .detail-value {{ display: inline-block; }}
+        .footer {{ background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Reserva Cancelada</h1>
+        </div>
+        
+        <div class="content">
+            <p>Estimado/a <strong>{usuario_reserva.nombre if usuario_reserva.nombre else 'usuario'}</strong>,</p>
+            
+            <div class="warning-box">
+                <strong>Su reserva ha sido cancelada por el administrador</strong>
+            </div>
+            
+            <p>Le informamos que su reserva para la siguiente actividad ha sido cancelada:</p>
+            
+            <div class="details-box">
+                <div class="detail-item">
+                    <span class="detail-label">📌 Actividad:</span>
+                    <span class="detail-value"><strong>{actividad_nombre}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📅 Fecha:</span>
+                    <span class="detail-value"><strong>{dia_formateado}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">🕐 Horario:</span>
+                    <span class="detail-value"><strong>{actividad_start_time} - {actividad_end_time}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">📍 Lugar:</span>
+                    <span class="detail-value"><strong>{mensaje_lugar}</strong></span>
+                </div>
+            </div>
+            
+            <p>Si tiene alguna pregunta sobre esta cancelación, por favor contacte con el administrador.</p>
+            
+            <p style="color: #666; font-size: 13px; margin-top: 25px;">Puede realizar una nueva reserva en cualquier momento desde nuestra plataforma.</p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0; color: #999;">Este es un correo automático. Por favor, no responda a este mensaje.</p>
+            <p style="margin: 5px 0 0 0; color: #999;">© 2025 Club Member. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+                
+                # Contenido en texto plano
+                text_content = f"""Estimado/a {usuario_reserva.nombre if usuario_reserva.nombre else 'usuario'},
+
+Su reserva ha sido cancelada por el administrador.
+
+Detalles de la reserva cancelada:
+─────────────────────
+Actividad: {actividad_nombre}
+Fecha: {dia_formateado}
+Horario: {actividad_start_time} - {actividad_end_time}
+Lugar: {mensaje_lugar}
+
+Si tiene alguna pregunta sobre esta cancelación, por favor contacte con el administrador.
+
+Puede realizar una nueva reserva en cualquier momento desde nuestra plataforma.
+
+─────────────────────
+Este es un correo automático. Por favor, no responda a este mensaje.
+© 2025 Club Member. Todos los derechos reservados.
+"""
+                
+                print(f"Destinatario: {usuario_reserva.email}")
+                print(f"Remitente: {from_email}")
+                
+                if sendgrid_api_key:
+                    # Usar SendGrid API
+                    print("Usando SendGrid API (HTTP)...")
+                    from sendgrid import SendGridAPIClient
+                    from sendgrid.helpers.mail import Mail
+                    
+                    mail = Mail(
+                        from_email=from_email,
+                        to_emails=usuario_reserva.email,
+                        subject=subject,
+                        plain_text_content=text_content,
+                        html_content=html_content
+                    )
+                    
+                    sg = SendGridAPIClient(sendgrid_api_key)
+                    response = sg.send(mail)
+                    
+                    print(f"SendGrid Response Status: {response.status_code}")
+                    print("=== EMAIL DE CANCELACIÓN ENVIADO EXITOSAMENTE (SendGrid API) ===")
+                else:
+                    # Usar SMTP local (desarrollo)
+                    print("Usando SMTP local (desarrollo)...")
+                    from django.core.mail import EmailMultiAlternatives
+                    
+                    email = EmailMultiAlternatives(
+                        subject=subject,
+                        body=text_content,
+                        from_email=from_email,
+                        to=[usuario_reserva.email]
+                    )
+                    email.attach_alternative(html_content, "text/html")
+                    result = email.send()
+                    print(f"Resultado del envío: {result}")
+                    print("=== EMAIL DE CANCELACIÓN ENVIADO EXITOSAMENTE (SMTP) ===")
+                    
+            except Exception as e:
+                # Log del error pero no bloquear la cancelación
+                print(f"=== ERROR AL ENVIAR EMAIL DE CANCELACIÓN ===")
+                print(f"Tipo de error: {type(e).__name__}")
+                print(f"Mensaje de error: {str(e)}")
+                print(f"Traceback completo:\n{traceback.format_exc()}")
+                print("=== FIN ERROR EMAIL ===")
 
             return Response({
                 'message': 'Reserva cancelada exitosamente por el administrador',
