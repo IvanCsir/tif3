@@ -54,9 +54,21 @@ class AuthenticationViewSet(viewsets.ViewSet):
     def register(self, request):
         data = request.data
         user = User.objects.create_user(data['username'], data['email'], data['password'])
-        datosUsuario = UsuarioCreateSerializer(data={**data, 'usuario': user.id})  # Asociar el ID del usuario creado
+        
+        # Verificar si ya existe algún administrador (tipo_id = 1)
+        # Si no existe, el primer usuario será admin
+        admin_exists = DatosUsuarios.objects.filter(tipo_id=1).exists()
+        
+        # Asignar tipo según si existe o no un admin
+        if not admin_exists:
+            tipo_id = 1  # Primer usuario = admin
+        else:
+            tipo_id = 2  # Usuario normal = cliente
+        
+        # Crear el DatosUsuarios con el tipo asignado
+        datosUsuario = UsuarioCreateSerializer(data={**data, 'usuario': user.id, 'tipo': tipo_id})
         if datosUsuario.is_valid():
-            datosUsuario.save(usuario=user)  # Asignar el usuario creado al objeto Usuario
+            datosUsuario.save(usuario=user)
             return Response(datosUsuario.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
     #Tratando de arreglar el error, cp del juan
