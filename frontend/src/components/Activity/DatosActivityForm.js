@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams} from "react-router-dom";
-import { Button, Grid, TextField, Alert, FormControlLabel, Checkbox,Box} from "@mui/material";
+import { Button, Grid, TextField, Alert, FormControlLabel, Checkbox, Box, Typography } from "@mui/material";
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 
@@ -153,8 +153,21 @@ function DatosActivityForm(props) {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [recurrence, setRecurrence] = useState(1);
+  const [activityName, setActivityName] = useState('');
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Obtener el nombre de la actividad
+    axios
+      .get(`${API_BASE_URL}/api/activities/activity/${id}`)
+      .then((response) => {
+        setActivityName(response.data.actividad.name);
+      })
+      .catch((error) => {
+        console.error('Error al obtener la actividad:', error);
+      });
+  }, [id]);
 
   const handleSubmit = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -209,6 +222,18 @@ function DatosActivityForm(props) {
       spacing={2}
       mt={3}
     >
+      {activityName && (
+        <Grid item>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom
+            sx={{ fontWeight: 'bold', textTransform: 'uppercase' }}
+          >
+            {activityName}
+          </Typography>
+        </Grid>
+      )}
       <Grid item>
         <TextField
           value={day}
