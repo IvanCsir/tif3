@@ -5,13 +5,18 @@ import '../../styles/RecommendationsWidget.css';
 const RecommendationsWidget = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const usuarioId = localStorage.getItem('usuario_id');
 
   // Rutas públicas donde no se debe mostrar el widget
   const rutasPublicas = ['/', '/register', '/logout', '/recomendaciones-ia'];
 
-  // No mostrar el widget si no hay usuario autenticado o si está en una ruta pública
-  if (!usuarioId || rutasPublicas.includes(location.pathname)) {
+  // No mostrar el widget si está en una ruta pública
+  if (rutasPublicas.includes(location.pathname)) {
+    return null;
+  }
+
+  // No mostrar el widget si no hay usuario autenticado
+  const usuarioId = localStorage.getItem('usuario_id');
+  if (!usuarioId) {
     return null;
   }
 
