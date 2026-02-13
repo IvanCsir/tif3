@@ -9,6 +9,10 @@ const RecommendationsWidget = () => {
   // Rutas públicas donde no se debe mostrar el widget
   const rutasPublicas = ['/', '/register', '/logout', '/recomendaciones-ia'];
 
+  // Debug: ver qué ruta está detectando
+  console.log('RecommendationsWidget - pathname:', location.pathname);
+  console.log('RecommendationsWidget - es ruta pública?', rutasPublicas.includes(location.pathname));
+
   // No mostrar el widget si está en una ruta pública
   if (rutasPublicas.includes(location.pathname)) {
     return null;
