@@ -32,7 +32,7 @@ const RecommendationsWidget = () => {
     <div className="recommendations-widget" onClick={handleClick}>
       <div className="widget-content">
         <span className="widget-icon">✨</span>
-        <span className="widget-text">Mirá tus recomendaciones de actividades con IA</span>
+        <span className="widget-text">TEST - Mirá tus recomendaciones de actividades con IA</span>
       </div>
     </div>
   );
