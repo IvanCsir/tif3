@@ -249,6 +249,92 @@ class AIRecommendationsView(viewsets.ViewSet):
         
         return result
 
+    def _check_activity_compatibility(self, activity, datos_usuario):
+        """
+        Verifica si una actividad es compatible con las limitaciones del usuario.
+        Retorna un dict con información sobre la compatibilidad y advertencias específicas.
+        """
+        if not datos_usuario.limitaciones:
+            return {
+                'compatible': True,
+                'warnings': [],
+                'severity': 'none'
+            }
+        
+        limitaciones_text = datos_usuario.limitaciones.lower()
+        activity_text = (activity.name + ' ' + activity.description).lower()
+        
+        # Mapear limitaciones a actividades contraindicadas
+        limitacion_keywords = {
+            'rodilla': {
+                'keywords': ['running', 'correr', 'trote', 'salto', 'crossfit', 'hiit'],
+                'message': 'problemas de rodilla'
+            },
+            'espalda': {
+                'keywords': ['crossfit', 'pesas', 'musculacion', 'peso'],
+                'message': 'problemas de espalda'
+            },
+            'corazon': {
+                'keywords': ['hiit', 'crossfit', 'intenso', 'alta intensidad'],
+                'message': 'problemas cardíacos'
+            },
+            'cardio': {
+                'keywords': ['hiit', 'crossfit', 'running', 'intenso'],
+                'message': 'limitaciones cardiovasculares'
+            },
+            'lesion': {
+                'keywords': ['intenso', 'crossfit', 'hiit', 'pesas', 'peso'],
+                'message': 'lesión activa'
+            },
+            'embarazo': {
+                'keywords': ['hiit', 'crossfit', 'pesas', 'intenso', 'salto'],
+                'message': 'embarazo'
+            },
+            'presion': {
+                'keywords': ['hiit', 'crossfit', 'intenso', 'alta intensidad'],
+                'message': 'problemas de presión'
+            },
+            'articulaciones': {
+                'keywords': ['running', 'correr', 'salto', 'hiit', 'crossfit'],
+                'message': 'problemas articulares'
+            },
+            'no puedo correr': {
+                'keywords': ['running', 'correr', 'trote'],
+                'message': 'imposibilidad de correr'
+            },
+            'no correr': {
+                'keywords': ['running', 'correr', 'trote'],
+                'message': 'restricción de carrera'
+            }
+        }
+        
+        warnings = []
+        detected_limitations = []
+        
+        for limitacion, config in limitacion_keywords.items():
+            if limitacion in limitaciones_text:
+                detected_limitations.append(config['message'])
+                for keyword in config['keywords']:
+                    if keyword in activity_text:
+                        warnings.append({
+                            'limitation': config['message'],
+                            'activity_type': keyword,
+                            'message': f"Esta actividad podría no ser recomendable por tus {config['message']}"
+                        })
+                        break
+        
+        # Determinar severidad
+        severity = 'none'
+        if len(warnings) > 0:
+            severity = 'high'  # Siempre alta si hay coincidencia
+        
+        return {
+            'compatible': len(warnings) == 0,
+            'warnings': warnings,
+            'severity': severity,
+            'user_limitations': detected_limitations
+        }
+
     def _extract_tags(self, text):
         """Extrae etiquetas simples basadas en palabras clave para detectar actividades similares"""
         text = text.lower()
@@ -848,4 +934,80 @@ Formato de respuesta:
                 'success': False,
                 'error': str(e),
                 'recommendations': []
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['post'])
+    def validate_reservation(self, request):
+        """
+        Endpoint: POST /api/ai-recommendations/validate_reservation/
+        Valida si una actividad es apropiada para el usuario según sus limitaciones.
+        
+        Parámetros:
+        - activity_id: ID de la actividad
+        - user_id (opcional): ID del usuario, si no se proporciona usa el autenticado
+        
+        Retorna:
+        - compatible: bool - Si la actividad es compatible
+        - warnings: list - Lista de advertencias específicas
+        - severity: str - Nivel de severidad ('none', 'high')
+        - should_confirm: bool - Si debe mostrarse confirmación
+        """
+        try:
+            activity_id = request.data.get('activity_id')
+            user_id_param = request.data.get('user_id') or request.headers.get('X-User-Id')
+            
+            if not activity_id:
+                return Response({
+                    'success': False,
+                    'message': 'Se requiere activity_id'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Obtener usuario
+            user = request.user if request.user.is_authenticated else None
+            
+            if user_id_param:
+                try:
+                    datos_usuario = DatosUsuarios.objects.get(pk=user_id_param)
+                except DatosUsuarios.DoesNotExist:
+                    try:
+                        datos_usuario = DatosUsuarios.objects.get(usuario_id=user_id_param)
+                    except DatosUsuarios.DoesNotExist:
+                        return Response({
+                            'success': False,
+                            'message': f'Usuario con ID {user_id_param} no encontrado'
+                        }, status=status.HTTP_404_NOT_FOUND)
+            elif user:
+                datos_usuario = get_object_or_404(DatosUsuarios, usuario=user)
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Se requiere user_id o sesión activa'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Obtener actividad
+            try:
+                activity = Activity.objects.get(id=activity_id)
+            except Activity.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'message': f'Actividad con ID {activity_id} no encontrada'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Validar compatibilidad
+            validation_result = self._check_activity_compatibility(activity, datos_usuario)
+            
+            return Response({
+                'success': True,
+                'activity_name': activity.name,
+                'compatible': validation_result['compatible'],
+                'warnings': validation_result['warnings'],
+                'severity': validation_result['severity'],
+                'should_confirm': not validation_result['compatible'],  # Mostrar confirmación si NO es compatible
+                'user_limitations': validation_result.get('user_limitations', [])
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

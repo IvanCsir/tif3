@@ -1,0 +1,161 @@
+/* Estilos para el modal de advertencia de reservas */
+
+.warning-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in;
+}
+
+.warning-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.warning-modal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #ff6b6b;
+}
+
+.warning-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  margin-left: 10px;
+}
+
+.warning-icon {
+  font-size: 36px;
+  color: #ff6b6b;
+}
+
+.warning-box {
+  background-color: #fff5f5;
+  border-left: 4px solid #ff6b6b;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+}
+
+.warning-box p {
+  margin: 5px 0;
+  color: #c92a2a;
+  font-weight: 500;
+}
+
+.warning-message {
+  color: #495057;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+.warning-question {
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+  margin: 25px 0 20px;
+  color: #212529;
+}
+
+.warning-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.btn-cancel-warning {
+  padding: 12px 24px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-warning:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-confirm-warning {
+  padding: 12px 24px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-confirm-warning:hover {
+  background-color: #ff5252;
+  transform: translateY(-1px);
+}
+
+.btn-confirm-warning:disabled,
+.btn-cancel-warning:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .warning-modal-content {
+    padding: 20px;
+    width: 95%;
+  }
+
+  .warning-modal-header h2 {
+    font-size: 20px;
+  }
+
+  .warning-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel-warning,
+  .btn-confirm-warning {
+    width: 100%;
+  }
+}
