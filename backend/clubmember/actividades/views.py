@@ -779,15 +779,62 @@ Este es un correo automático. Por favor, no responda a este mensaje.
 class MensajeView(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def crear_mensaje(self, request):
-        serializer = MensajeSerializer(data=request.data)
-        if serializer.is_valid():
-            mensaje = serializer.save()
+        """
+        Crea un mensaje para todos los usuarios del sistema.
+        Espera recibir 'titulo' y 'contenido' en el request.
+        """
+        try:
+            # Extraer datos del request
+            titulo = request.data.get('titulo')
+            contenido = request.data.get('contenido')
+            
+            # Validar que los campos requeridos estén presentes
+            if not titulo or not contenido:
+                return Response(
+                    {'error': 'Los campos titulo y contenido son obligatorios'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Obtener todos los usuarios
             usuarios = DatosUsuarios.objects.all()
-            for usuario in usuarios:
-                if usuario.id != 1:  # Omitir creación adicional de mensajes para el usuario 1
-                    Mensaje.objects.create(usuario=usuario, titulo=mensaje.titulo, contenido=mensaje.contenido)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not usuarios.exists():
+                return Response(
+                    {'error': 'No hay usuarios en el sistema'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Crear mensajes para todos los usuarios en una transacción atómica
+            mensajes_creados = []
+            with transaction.atomic():
+                for usuario in usuarios:
+                    mensaje = Mensaje.objects.create(
+                        usuario=usuario,
+                        titulo=titulo,
+                        contenido=contenido
+                    )
+                    mensajes_creados.append(mensaje)
+            
+            # Serializar el primer mensaje creado para la respuesta
+            serializer = MensajeSerializer(mensajes_creados[0])
+            
+            return Response({
+                'message': f'Mensaje creado exitosamente para {len(mensajes_creados)} usuario(s)',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            # Log del error para debugging
+            print(f"=== ERROR AL CREAR MENSAJE ===")
+            print(f"Tipo de error: {type(e).__name__}")
+            print(f"Mensaje de error: {str(e)}")
+            print(f"Traceback completo:\n{traceback.format_exc()}")
+            print("=== FIN ERROR MENSAJE ===")
+            
+            return Response(
+                {'error': f'Error al crear mensaje: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=['get'])
     def obtener_mensajes(self, request, usuario_id=None):
